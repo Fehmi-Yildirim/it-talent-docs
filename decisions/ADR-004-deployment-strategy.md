@@ -1,10 +1,12 @@
 
-# `ADR-004-deployment-strategy.md`
+### `decisions/ADR-004-deployment-strategy.md`
 
+```md
 # ADR-004 — Deployment Strategy
 
 **Status:** Accepted  
-**Date:** 2026-08-12
+**Date:** 2026-08-12  
+**Updated:** 2026-08-13
 
 ## Context
 
@@ -22,14 +24,17 @@ The frontend and backend are separate repositories.
 
 The initial deployment architecture will use Git-based continuous deployment.
 
-The frontend will be deployed using Vercel or an equivalent Next.js-compatible platform.
+The frontend and backend will be deployed independently.
 
-The backend will be deployed independently using a platform suitable for long-running Node.js/NestJS services.
+The frontend will be deployed as a React/Vite application on a static or frontend hosting platform.
+
+The backend will be deployed as a long-running Node.js/NestJS service.
 
 The database will use managed PostgreSQL.
 
-## Development Flow
+## Development and Deployment Flow
 
+```text
 Developer
     │
     ▼
@@ -38,11 +43,12 @@ Git
     ▼
 GitHub
     │
-    ├───────────────┐
-    ▼               ▼
-Frontend          Backend
-deployment        deployment
-    │               │
-    └───────┬───────┘
-            ▼
-        PostgreSQL
+    ├──────────────────┐
+    ▼                  ▼
+Frontend             Backend
+deployment           deployment
+    │                  │
+    └────────┬─────────┘
+             │
+             ▼
+       Managed PostgreSQL

@@ -1,7 +1,8 @@
 # ADR-001 — Multi-Repository Architecture
 
 **Status:** Accepted  
-**Date:** 2026-08-12
+**Date:** 2026-08-12  
+**Updated:** 2026-08-13
 
 ## Context
 
@@ -11,7 +12,7 @@ The IT Talent Platform consists of three clearly separated concerns:
 - backend/API application;
 - project documentation.
 
-The project is intended to be deployed and developed independently.
+The applications and documentation are developed and versioned independently.
 
 ## Decision
 
@@ -21,7 +22,7 @@ We use three separate GitHub repositories:
 - `it-talent-backend`
 - `it-talent-docs`
 
-The repositories are related to the same product but remain independently versioned.
+The repositories belong to the same product but remain independently versioned and deployable.
 
 ## Rationale
 
@@ -31,7 +32,7 @@ This separation provides:
 - clear ownership boundaries;
 - smaller repositories;
 - independent CI/CD pipelines;
-- easier frontend/backend scaling;
+- independent frontend/backend scaling;
 - reduced coupling;
 - clean separation between application code and documentation.
 
@@ -62,7 +63,7 @@ and:
 
 `it-talent-frontend`
 
-This will be managed through API contracts and versioning.
+This will be managed through versioned REST API contracts and coordinated changes.
 
 ## Rejected Alternative
 

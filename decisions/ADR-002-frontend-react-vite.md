@@ -1,11 +1,16 @@
+
+### `decisions/ADR-002-frontend-react-vite.md`
+
+```md
 # ADR-002 — Frontend Technology
 
 **Status:** Accepted  
-**Date:** 2026-08-12
+**Date:** 2026-08-12  
+**Updated:** 2026-08-13
 
 ## Context
 
-The IT Talent platform requires a modern web application for:
+The IT Talent Platform requires a modern web application for:
 
 - candidates;
 - recruiters;
@@ -15,11 +20,11 @@ The IT Talent platform requires a modern web application for:
 - authentication;
 - matching results.
 
-The frontend must provide a responsive user experience and a maintainable architecture that can evolve as the platform grows.
-
 The frontend is maintained as a separate repository:
 
 `it-talent-frontend`
+
+The frontend communicates with the backend through a versioned REST API.
 
 ## Decision
 
@@ -30,15 +35,13 @@ The frontend will use:
 - TypeScript;
 - Oxlint.
 
-The frontend will be implemented as a client-side React application and will communicate with the backend through a versioned REST API.
+The frontend will be implemented as a client-side React application.
 
 ## Rationale
 
 ### React
 
-React provides the component-based UI model required by the platform.
-
-It allows us to build reusable components for:
+React provides the component-based UI architecture required for:
 
 - candidate profiles;
 - recruiter dashboards;
@@ -58,10 +61,10 @@ It provides:
 - fast production builds;
 - native TypeScript support;
 - straightforward React integration;
-- a lightweight frontend architecture;
-- simple deployment to modern hosting platforms.
+- lightweight architecture;
+- simple deployment.
 
-Vite is preferred over Next.js because the initial platform architecture separates the frontend application from the backend API.
+Vite is preferred over Next.js because the platform uses a separate frontend application and backend API.
 
 ### TypeScript
 
@@ -77,8 +80,6 @@ It provides fast static analysis and integrates directly with the Vite project.
 
 ## Architecture
 
-Conceptually:
-
 ```text
 React + Vite
      │
@@ -93,7 +94,7 @@ React + Vite
      └── Authentication
               │
               ▼
-        Backend REST API
+        NestJS REST API
               │
               ▼
-        it-talent-backend
+        PostgreSQL / AI

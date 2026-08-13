@@ -1,11 +1,12 @@
 
+### `decisions/ADR-003-backend-stack.md`
 
-# `ADR-003-backend-stack.md`
-
+```md
 # ADR-003 — Backend Technology Stack
 
 **Status:** Accepted  
-**Date:** 2026-08-12
+**Date:** 2026-08-12  
+**Updated:** 2026-08-13
 
 ## Context
 
@@ -21,7 +22,7 @@ The backend must provide:
 - validation;
 - API documentation.
 
-The backend should be modular and maintainable.
+The backend must be modular, secure and maintainable.
 
 ## Decision
 
@@ -31,6 +32,8 @@ The backend will use:
 - TypeScript;
 - Prisma;
 - PostgreSQL.
+
+The backend will expose a versioned REST API.
 
 ## Rationale
 
@@ -50,16 +53,18 @@ This fits the complexity expected from the platform.
 
 ### TypeScript
 
-Using TypeScript across frontend and backend reduces context switching and allows shared conceptual models.
+TypeScript provides static typing throughout the backend and keeps the frontend and backend technology stacks aligned.
 
 ### Prisma
 
 Prisma provides:
 
 - type-safe database access;
-- migrations;
 - schema management;
-- good TypeScript integration.
+- migrations;
+- strong TypeScript integration.
+
+Prisma will be the primary database access layer.
 
 ### PostgreSQL
 
@@ -79,16 +84,28 @@ PostgreSQL is selected because the platform requires:
 HTTP Request
      │
      ▼
+Rate Limiting
+     │
+     ▼
+Authentication
+     │
+     ▼
+Authorization
+     │
+     ▼
 Controller
+     │
+     ▼
+Validation
      │
      ▼
 Service
      │
      ▼
-Domain Logic
+Domain / Business Logic
      │
      ▼
-Repository / Prisma
+Prisma
      │
      ▼
 PostgreSQL
