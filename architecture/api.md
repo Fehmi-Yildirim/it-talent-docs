@@ -1,16 +1,19 @@
-IT Talent Platform — API Specification
+# IT Talent Platform — API Specification
 
-Document: api.md
-Version: 0.1.0
-Status: Draft / MVP API Specification
-Last updated: 2026-08-12
+**Document:** api.md  
+**Version:** 0.1.1  
+**Status:** Draft / API Architecture Baseline  
+**Last updated:** 2026-08-18
 
-1. Purpose
+---
 
-This document defines the REST API contract for the IT Talent Platform.
+# 1. Purpose
 
-The API provides communication between:
+This document defines the REST API architecture for the IT Talent Platform.
 
+The API is the formal communication boundary between:
+
+```text
 it-talent-frontend
         │
         │ HTTPS / JSON
@@ -18,111 +21,143 @@ it-talent-frontend
 it-talent-backend
         │
         ├── PostgreSQL
+        ├── Business Logic
         ├── Matching Engine
         └── AI Services
 
-The API is the formal boundary between frontend and backend.
+The frontend must not directly access PostgreSQL.
 
-The frontend must not directly access the database.
+This document distinguishes between:
 
-2. API Principles
+endpoints currently implemented;
+endpoints that are partially implemented;
+planned endpoints belonging to the target platform architecture.
 
-The API follows these principles:
+The actual NestJS controllers, DTOs, guards and services are the implementation source of truth.
 
-RESTful resources;
+2. API Implementation Status
+
+The following status model is used throughout this document.
+
+Status	Meaning
+✅ Implemented	Endpoint currently exists and is part of the active backend implementation
+🟡 Foundation / Partial	Related functionality exists, but the complete endpoint/domain is not implemented
+🔵 Planned / Roadmap	Target architecture only
+
+The presence of an endpoint in this document does not mean that the endpoint currently exists.
+
+3. API Principles
+
+The API follows these architectural principles:
+
+REST-oriented resources;
 JSON request and response bodies;
 HTTPS in deployed environments;
-versioned endpoints;
-consistent HTTP status codes;
+versioned API paths;
 explicit validation;
-predictable error responses;
+predictable HTTP status codes;
 authentication where required;
-role-based authorization;
-pagination for collections;
+backend-enforced authorization;
+DTO-based request validation;
+domain-level API resources;
+pagination for large collections where required;
 filtering and sorting where appropriate.
 
-3. Base URL
+The API must remain independent from the internal Prisma/database structure.
 
-The production API will eventually use a dedicated domain.
+4. Base URL
+Local development
 
-For development:
+The intended local API base path is:
 
 http://localhost:3001/api/v1
 
-For Vercel:
+The exact local port and prefix must match the backend configuration.
+
+Production
+
+The production API will eventually use a dedicated backend domain:
+
 https://<backend-domain>/api/v1
 
-The actual production domain will be decided later.
+The production domain is not fixed in this document.
 
-4. API Versioning
+5. API Versioning
 
-The initial API version is:
+Status: 🟡 Architecture / Foundation
+
+The target API version is:
 
 /api/v1
 
-Examples:
+Example:
+
 GET /api/v1/jobs
 GET /api/v1/candidates
-POST /api/v1/jobs/:id/match
 
 Breaking API changes should result in a new major API version.
 
-5. Content Type
+The actual global prefix must match the NestJS application configuration.
 
-Requests and responses use JSON unless explicitly documented otherwise.
+6. Content Type
 
-Request:
-
-Content-Type: application/json
-
-Response:
+Standard API requests and responses use JSON.
 
 Content-Type: application/json
 
-File uploads such as CVs will use:
+Future file-upload functionality may use:
 
 multipart/form-data
 
-or a signed object-storage upload mechanism.
+or signed object-storage uploads.
 
-6. Authentication
+CV upload is currently roadmap functionality.
 
-Authenticated endpoints require a valid authentication mechanism.
-The exact token transport strategy will be finalized during implementation.
+7. Authentication
+
+Status: 🟡 Foundation / Partial
+
+Authentication is handled by the backend.
 
 Conceptually:
 
 Client
   │
-  ├── login
+  ├── Login/Register
   ▼
 Backend
   │
-  └── authenticated session/token
+  └── Authenticated session/token
         │
         ▼
 Protected API
 
-Authentication must never be implemented only in the frontend.
+Authentication must never rely exclusively on frontend restrictions.
 
-7. Roles
+The exact token/session transport mechanism must match the current backend implementation.
 
-Initial roles:
+8. Roles
+
+Status: 🟡 Foundation / Partial
+
+The target platform roles are:
 
 CANDIDATE
 RECRUITER
 ADMIN
 
-Role authorization is enforced by the backend.
+Authorization must be enforced by the backend.
 
-8. HTTP Status Codes
+Not every role is necessarily fully implemented yet.
 
-The API will use conventional HTTP status codes.
+9. HTTP Status Codes
+
+The target API uses conventional HTTP status codes.
 
 Status	Meaning
 200	Successful request
 201	Resource created
-204	Successful request with no response body
+204	Successful request with no body
 400	Invalid request
 401	Authentication required/invalid
 403	Insufficient permissions
@@ -131,10 +166,15 @@ Status	Meaning
 422	Validation error
 429	Rate limit exceeded
 500	Internal server error
-503	Service temporarily unavailable
-9. Standard Error Format
+503	Service unavailable
 
-Errors should have a consistent structure.
+The actual status code returned by the current backend is authoritative.
+
+10. Standard Error Format
+
+Status: 🟡 Foundation / Partial
+
+The target API should use a consistent error structure.
 
 Example:
 
@@ -145,7 +185,7 @@ Example:
   "details": []
 }
 
-Validation error:
+Validation example:
 
 {
   "statusCode": 422,
@@ -159,17 +199,19 @@ Validation error:
   ]
 }
 
-The exact error schema may be refined during backend implementation.
+The exact error structure must follow the current NestJS exception/filter implementation.
 
-10. Pagination
+11. Pagination
 
-Collection endpoints should support pagination.
+Status: 🔵 Planned / Endpoint-dependent
+
+Collection endpoints should support pagination where required.
 
 Example:
 
 GET /api/v1/jobs?page=1&limit=20
 
-Response:
+Target response:
 
 {
   "data": [],
@@ -186,7 +228,12 @@ The backend should enforce a maximum limit.
 For example:
 
 limit <= 100
-11. Sorting
+
+Pagination should only be documented for endpoints that actually implement it.
+
+12. Sorting
+
+Status: 🔵 Planned
 
 Collection endpoints may support sorting.
 
@@ -194,24 +241,31 @@ Example:
 
 GET /api/v1/jobs?sort=createdAt&order=desc
 
-Only explicitly supported fields may be used for sorting.
+Only explicitly supported fields may be used.
 
-12. Filtering
+13. Filtering
 
-Filtering should use query parameters.
+Status: 🔵 Planned
+
+Collection endpoints may support filtering.
 
 Example:
 
 GET /api/v1/jobs?status=PUBLISHED&workMode=REMOTE
 
-Candidate search may eventually support:
+Future candidate discovery may support:
 
 GET /api/v1/candidates?skill=react&location=Amsterdam
 
-Advanced filtering will be implemented incrementally.
+Advanced filtering is roadmap functionality.
 
-13. Authentication Endpoints
+14. Authentication Endpoints
 Register
+
+Status: ✅ Implemented / Verify against current controller contract
+
+Target:
+
 POST /api/v1/auth/register
 
 Request:
@@ -222,19 +276,14 @@ Request:
   "role": "CANDIDATE"
 }
 
-Response:
+The exact request and response schema must match the implemented DTO.
 
-{
-  "user": {
-    "id": "...",
-    "email": "user@example.com",
-    "role": "CANDIDATE"
-  }
-}
+15. Login
 
-The exact authentication response will depend on the final session/token implementation.
+Status: ✅ Implemented / Verify against current controller contract
 
-14. Login
+Target:
+
 POST /api/v1/auth/login
 
 Request:
@@ -244,29 +293,41 @@ Request:
   "password": "secure-password"
 }
 
-Successful authentication creates an authenticated session.
+The backend creates the authenticated state according to the implemented authentication mechanism.
 
-15. Current User
+The documentation must not assume JWT/cookie/refresh-token behavior unless it exists in the implementation.
+
+16. Current User
+
+Status: 🟡 Foundation / Partial
+
+Target:
+
 GET /api/v1/users/me
 
-Returns the authenticated user's basic account information and applicable profile reference.
+Returns information belonging to the authenticated user.
 
 Example:
 
 {
   "id": "...",
-  "email": "user@example.com",
-  "role": "RECRUITER"
+  "email": "...",
+  "role": "CANDIDATE"
 }
-16. Candidate Profile
-Get own candidate profile
+
+The exact response must match the current backend DTO.
+
+17. Candidate Profile
+
+Status: 🟡 Foundation / Partial
+
+Target endpoints:
+
 GET /api/v1/candidates/me
-Create profile
 POST /api/v1/candidates
-Update profile
 PATCH /api/v1/candidates/me
 
-Example:
+Example profile payload:
 
 {
   "headline": "Senior React Developer",
@@ -277,11 +338,21 @@ Example:
   "currency": "EUR",
   "remotePreference": "HYBRID"
 }
-17. Candidate Skills
-List candidate skills
+
+Not every field in this example is necessarily implemented.
+
+The actual DTO/schema is authoritative.
+
+18. Candidate Skills
+
+Status: 🔵 Planned / Roadmap
+
+Target endpoints:
+
 GET /api/v1/candidates/me/skills
-Add skill
 POST /api/v1/candidates/me/skills
+PATCH /api/v1/candidates/me/skills/:id
+DELETE /api/v1/candidates/me/skills/:id
 
 Example:
 
@@ -290,53 +361,81 @@ Example:
   "proficiencyLevel": 4,
   "yearsOfExperience": 5
 }
-Update skill
-PATCH /api/v1/candidates/me/skills/:id
-Remove skill
-DELETE /api/v1/candidates/me/skills/:id
-18. Candidate Discovery
 
-Recruiters can search candidates subject to authorization rules.
+The complete CandidateSkill relationship is not currently part of the implemented API foundation.
+
+19. Candidate Discovery
+
+Status: 🔵 Planned / Roadmap
+
+Target:
 
 GET /api/v1/candidates
+
+Potential filters:
+
+skill
+location
+experience
+page
+limit
 
 Example:
 
 GET /api/v1/candidates
   ?skill=react
   &location=Amsterdam
-  &minExperience=3
   &page=1
   &limit=20
 
-The backend must ensure that private candidate information is not exposed.
+Candidate discovery requires recruiter/company authorization and privacy controls.
 
-19. Candidate Detail
+20. Candidate Detail
+
+Status: 🔵 Planned / Roadmap
+
+Target:
+
 GET /api/v1/candidates/:id
 
-The response depends on the authenticated user's permissions.
+The returned information must depend on the authenticated user's permissions.
 
-A candidate must not automatically be fully visible to every recruiter.
+Private candidate information must not automatically be exposed.
 
-20. Company
-Get company
+21. Company
+
+Status: 🔵 Planned / Roadmap
+
+Target endpoints:
+
 GET /api/v1/companies/:id
-Update own company
 PATCH /api/v1/companies/me
 
-Only authorized company users may modify company information.
+Company authorization will be required.
 
-21. Recruiter Profile
-Get recruiter profile
+Company functionality is not currently part of the implemented MVP foundation.
+
+22. Recruiter Profile
+
+Status: 🔵 Planned / Roadmap
+
+Target:
+
 GET /api/v1/recruiters/me
-Update recruiter profile
 PATCH /api/v1/recruiters/me
-22. Jobs
-Create Job
 
-Recruiter only.
+Recruiter functionality depends on the Company/Recruiter domain implementation.
+
+23. Jobs
+
+Status: 🔵 Planned / Roadmap
+
+Target:
 
 POST /api/v1/jobs
+GET /api/v1/jobs
+GET /api/v1/jobs/:id
+PATCH /api/v1/jobs/:id
 
 Example:
 
@@ -350,51 +449,38 @@ Example:
   "salaryMax": 6500,
   "currency": "EUR"
 }
-23. List Jobs
-GET /api/v1/jobs
 
-Possible query parameters:
+The Jobs domain depends on Company and Recruiter relationships.
 
-status
-companyId
-workMode
-employmentType
-location
-page
-limit
-sort
-order
+24. Job Publishing
 
-Public job discovery will expose only appropriate fields.
+Status: 🔵 Planned / Roadmap
 
-24. Get Job
-GET /api/v1/jobs/:id
-25. Update Job
+Target:
 
-Recruiter/company authorization required.
-
-PATCH /api/v1/jobs/:id
-26. Publish Job
 POST /api/v1/jobs/:id/publish
 
-The backend should validate the job before publishing.
+The backend should validate required information before publishing.
 
-For example:
+25. Job Closing
 
-title required;
-description required;
-company required;
-minimum required data present.
-27. Close Job
+Status: 🔵 Planned / Roadmap
+
+Target:
+
 POST /api/v1/jobs/:id/close
 
 Closed jobs should not appear in normal active job discovery.
 
-28. Job Requirements
-List requirements
+26. Job Requirements
+
+Status: 🔵 Planned / Roadmap
+
+Target:
+
 GET /api/v1/jobs/:id/requirements
-Add requirement
 POST /api/v1/jobs/:id/requirements
+PATCH /api/v1/jobs/:jobId/requirements/:requirementId
 
 Example:
 
@@ -404,17 +490,24 @@ Example:
   "required": true,
   "weight": 0.3
 }
-Update requirement
-PATCH /api/v1/jobs/:jobId/requirements/:requirementId
-29. Skills
-Search skills
+
+This functionality depends on the JobRequirement database model.
+
+27. Skills
+
+Status: ✅ Implemented
+
+The Skills domain is part of the current backend foundation.
+
+Target endpoint:
+
 GET /api/v1/skills
 
-Example:
+Potential search:
 
 GET /api/v1/skills?search=react
 
-Response:
+Example response:
 
 {
   "data": [
@@ -426,24 +519,34 @@ Response:
     }
   ]
 }
-30. Skill Creation
 
-Skill creation should normally be restricted to the platform/admin or controlled AI normalization process.
+The actual endpoint path, query parameters and response structure must match the implemented controller.
+
+28. Skill Creation
+
+Status: 🟡 Foundation / Partial
+
+Target:
 
 POST /api/v1/skills
 
-Regular candidates should not be able to arbitrarily create platform-wide skills.
+Skill creation should be restricted to authorized platform functionality.
 
-31. Matching
+Candidates should not be able to arbitrarily create global platform skills.
 
-Matching is one of the central API domains.
+The exact authorization rules must match the current implementation.
 
-Calculate matches for job
+29. Matching
+
+Status: 🔵 Planned / Roadmap
+
+Matching is a core future domain.
+
+Target:
+
 POST /api/v1/jobs/:id/match
 
-This requests matching between the job and eligible candidates.
-
-The backend performs:
+Conceptually:
 
 Job
  ↓
@@ -464,17 +567,22 @@ Availability
 Preferences
  ↓
 Score
-32. Get Job Matches
+
+The matching engine is not currently considered implemented merely because this endpoint is documented.
+
+30. Job Matches
+
+Status: 🔵 Planned / Roadmap
+
+Target:
+
 GET /api/v1/jobs/:id/matches
 
-Example:
+Potential query:
 
-GET /api/v1/jobs/:id/matches
-  ?minScore=70
-  &page=1
-  &limit=20
+?minScore=70&page=1&limit=20
 
-Response:
+Target response:
 
 {
   "data": [
@@ -494,20 +602,27 @@ Response:
     "totalPages": 1
   }
 }
-33. Get Match Detail
+31. Match Detail
+
+Status: 🔵 Planned / Roadmap
+
+Target:
+
 GET /api/v1/matches/:id
 
-The response should contain:
+The response should eventually contain:
 
 overall score;
 component scores;
-strong matches;
+strengths;
 gaps;
 relevant candidate information;
 relevant job information.
-34. Match Explanation
+32. Match Explanation
 
-Example:
+Status: 🔵 Planned / Roadmap
+
+Target structure:
 
 {
   "overallScore": 91,
@@ -529,23 +644,23 @@ Example:
   ]
 }
 
-The explanation should be generated from actual matching data.
+The explanation must be generated from actual matching data.
 
-AI may assist with natural-language presentation, but should not invent match reasons.
+AI may assist with natural-language presentation, but must not invent match reasons.
 
-35. CV Upload
+33. CV Upload
 
-CV upload will be introduced through a dedicated endpoint.
+Status: 🔵 Planned / Roadmap
 
-Possible initial API:
+Potential future endpoint:
 
 POST /api/v1/candidates/me/documents
 
-The endpoint may accept:
+Possible upload mechanism:
 
 multipart/form-data
 
-However, the preferred production architecture may use signed object-storage uploads:
+or:
 
 Frontend
    ↓
@@ -553,67 +668,75 @@ Backend requests upload URL
    ↓
 Object Storage
    ↓
-Backend receives file metadata
+Backend receives metadata
    ↓
 AI processing
 
-This design will be finalized when CV functionality is implemented.
+No CV upload API should be considered implemented until the corresponding backend functionality exists.
 
-36. AI Processing
+34. AI Processing
 
-AI endpoints should generally not be publicly exposed as raw provider proxies.
+Status: 🔵 Planned / Roadmap
 
-Instead of:
+AI providers should not be exposed directly to the frontend.
 
-POST /ai/openai
+Instead, the backend should expose domain-level operations.
 
-the API should expose domain-level operations.
-
-For example:
+Example:
 
 POST /api/v1/candidates/me/analyze-cv
 
-or internally:
+Conceptually:
 
 CV
  ↓
-Candidate processing service
+Candidate Processing Service
  ↓
-AI provider
+AI Provider
  ↓
 Structured CandidateSkill
-37. AI Job Analysis
 
-Similarly:
+AI credentials remain backend-only.
+
+35. AI Job Analysis
+
+Status: 🔵 Planned / Roadmap
+
+Potential endpoint:
 
 POST /api/v1/jobs/:id/analyze
 
 The backend may:
 
 read the job description;
-send appropriate content to the AI service;
+send appropriate content to the AI provider;
 extract skills;
 normalize skills;
-create/update job requirements;
-return the structured result.
-38. Idempotency
+create/update JobRequirements;
+return structured results.
 
-Operations that may be retried should eventually support idempotency.
+This functionality is not currently part of the implemented API.
 
-This is particularly relevant for:
+36. Idempotency
 
-payments;
+Status: 🔵 Planned
+
+Idempotency may eventually be required for retry-sensitive operations such as:
+
 AI processing;
 document processing;
-bulk matching.
+bulk matching;
+payments.
 
-The MVP may initially implement this only where required.
+It should be introduced when a concrete operation requires it.
 
-39. Rate Limiting
+37. Rate Limiting
+
+Status: 🔵 Security / Implementation Requirement
 
 The API should implement rate limiting.
 
-Particularly sensitive endpoints:
+Particularly sensitive endpoints include:
 
 POST /auth/login
 POST /auth/register
@@ -621,23 +744,22 @@ POST /jobs/:id/match
 POST /candidates/me/analyze-cv
 POST /jobs/:id/analyze
 
-Exact limits will be determined during implementation and deployment.
+Exact limits depend on the actual implementation and deployment environment.
 
-40. API Security
+38. API Security
 
-All production API traffic must use HTTPS.
+Production API traffic must use HTTPS.
 
 The backend must validate:
 
 authentication;
 authorization;
 input;
-file type;
-file size;
 query parameters;
-resource ownership.
+resource ownership;
+file type and size where file uploads exist.
 
-Never trust client-provided:
+The backend must never trust client-provided:
 
 companyId
 candidateId
@@ -645,32 +767,34 @@ userId
 role
 permissions
 
-The backend determines these values from the authenticated context wherever possible.
+where these values can be derived from authenticated context.
 
-41. API Validation
+39. API Validation
 
-NestJS validation should be applied to incoming DTOs.
+Status: 🟡 Foundation / Partial
 
-For example:
+NestJS DTO validation should be used for incoming requests.
+
+Examples of future DTOs:
 
 CreateJobDto
 UpdateCandidateDto
 CreateSkillDto
 CreateJobRequirementDto
 
-Validation should happen before business logic.
+Validation must happen before business logic.
 
-42. API DTO Strategy
+Only DTOs that actually exist in the backend should be considered implemented.
+
+40. API DTO Strategy
 
 Database entities must not automatically become API responses.
 
-We should use DTOs / response models.
+Target flow:
 
-For example:
-
-Prisma Candidate
+Prisma Entity
        ↓
-CandidateResponseDto
+Response DTO
        ↓
 Frontend
 
@@ -680,23 +804,27 @@ password hashes;
 internal fields;
 private metadata;
 database implementation details.
-43. API Documentation
+41. API Documentation
 
-The backend should expose OpenAPI/Swagger documentation during development.
+Status: 🔵 Planned / Development Requirement
 
-Expected development endpoint:
+The backend should expose OpenAPI/Swagger documentation.
+
+Target development endpoint:
 
 /api/docs
 
-The exact route can be changed later.
+The exact route depends on the NestJS configuration.
 
-OpenAPI should become an important reference for frontend development.
+OpenAPI should eventually become the primary machine-readable API contract for frontend development.
 
-44. Frontend API Client
+42. Frontend API Client
 
-The frontend should communicate with the backend through a centralized API layer.
+Status: 🟡 Foundation / Partial
 
-Conceptually:
+The frontend should communicate through a centralized API layer.
+
+Target structure:
 
 lib/api/
 ├── client.ts
@@ -706,69 +834,87 @@ lib/api/
 ├── skills.ts
 └── matches.ts
 
-React components should not contain raw fetch logic everywhere.
+Components should not duplicate raw API logic throughout the application.
 
-Instead:
+43. API Error Handling in Frontend
 
-Component
-   ↓
-API client
-   ↓
-REST API
-45. API Error Handling in Frontend
+The frontend should map backend errors to appropriate UI states.
 
-The frontend should translate API errors into appropriate UI states.
+HTTP	Frontend behavior
+401	Login/session handling
+403	Permission message
+404	Not found
+422	Form validation
+429	Retry/rate-limit message
+500	Generic server error
 
-Example:
+The exact implementation depends on the current frontend API client.
 
-401 → login/session handling
-403 → permission message
-404 → not found
-422 → form validation
-429 → retry/rate limit message
-500 → generic error
-
-Backend error codes should therefore remain stable.
-
-46. API Evolution
+44. API Evolution
 
 Non-breaking changes may be introduced within /v1.
 
-Breaking changes require:
+Breaking changes require a new API version.
 
+Example:
+
+/api/v1
 /api/v2
 
-The API must avoid unnecessary breaking changes during MVP development.
+The MVP should avoid unnecessary breaking changes.
 
-47. MVP API Scope
-
-The first implementation should focus on:
-
+45. Current API Scope
+Implemented / Foundation
 Authentication
 Users
-Candidates
-Candidate Skills
+Skills
+Initial Candidate/profile functionality
+Partial / Foundation
+Role-based access foundation
+Candidate domain
+API validation
+Frontend/backend API communication
+Planned
 Companies
 Recruiters
+Candidate Skills
+Candidate Discovery
 Jobs
 Job Requirements
-Skills
 Matching
+Match explanations
 CV processing
-AI job analysis
+AI CV analysis
+AI Job analysis
+46. Target MVP API Scope
 
-The following are postponed:
+The target MVP API is intended to eventually support:
 
-Applications
-Messaging
-Notifications
-Payments
-Subscriptions
-Assessments
-ATS integrations
-48. API Implementation Order
+Authentication
+        ↓
+Users
+        ↓
+Candidates
+        ↓
+Candidate Skills
+        ↓
+Companies
+        ↓
+Recruiters
+        ↓
+Jobs
+        ↓
+Job Requirements
+        ↓
+Matching
+        ↓
+CV / AI processing
 
-The backend API should be implemented in this order:
+This is the target architecture, not a statement that every component is currently implemented.
+
+47. API Implementation Order
+
+The target implementation order is:
 
 1. Health check
 2. Database connection
@@ -785,11 +931,13 @@ The backend API should be implemented in this order:
 13. CV processing
 14. AI integration
 
-This order follows the dependency structure of the domain.
+Actual implementation order may differ where existing code already provides functionality.
 
-49. Health Check
+48. Health Check
 
-The backend should expose a health endpoint.
+Status: 🟡 Verify against implementation
+
+Target:
 
 GET /api/v1/health
 
@@ -799,11 +947,13 @@ Example:
   "status": "ok"
 }
 
-Later this can include dependency checks.
+A health endpoint should eventually support deployment and monitoring.
 
-50. API Definition of Done
+The exact route must match the backend implementation.
 
-The API architecture is considered implemented for an endpoint when:
+49. API Definition of Done
+
+An endpoint is considered implemented when:
 
 request schema is defined;
 authentication requirements are defined;
@@ -813,18 +963,41 @@ response schema is defined;
 error behavior is defined;
 automated tests exist;
 OpenAPI documentation exists where appropriate.
+
+Documentation alone does not make an endpoint implemented.
+
+50. Source of Truth
+
+For API implementation, the following hierarchy applies:
+
+1. NestJS controllers
+        ↓
+2. DTOs
+        ↓
+3. Services / Guards
+        ↓
+4. Automated tests
+        ↓
+5. OpenAPI/Swagger
+        ↓
+6. api.md
+
+If api.md differs from the actual backend implementation, the discrepancy must be identified and corrected.
+
+The documentation must not describe roadmap functionality as implemented functionality.
+
 51. Next Step
 
-The documentation architecture now contains:
+The documentation structure is now:
 
 it-talent-docs/
 │
 ├── README.md
 │
 ├── architecture/
-│   ├── architecture.md      ✓
-│   ├── database.md          ✓
-│   ├── api.md               ✓
+│   ├── architecture.md
+│   ├── database.md
+│   ├── api.md
 │   └── security.md          ← NEXT
 │
 ├── product/
@@ -835,4 +1008,22 @@ it-talent-docs/
 └── decisions/
     └── README.md
 
-Daarmee hebben we nu Architecture → Database → API vastgelegd.
+The next document to review is:
+
+architecture/security.md
+
+The same rule applies:
+
+✅ Implemented
+🟡 Foundation / Partial
+🔵 Planned / Roadmap
+52. Document Status
+
+Document: api.md
+Version: 0.1.1
+Status: Draft / API Architecture Baseline
+Last updated: 2026-08-18
+
+This document describes the current API foundation together with the target API architecture.
+
+The actual NestJS implementation remains the source of truth.

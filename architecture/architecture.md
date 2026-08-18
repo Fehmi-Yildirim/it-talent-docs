@@ -1,39 +1,65 @@
-IT Talent Platform — System Architecture
+# IT Talent Platform — System Architecture
 
-Document: architecture.md
-Version: 0.1.0
-Status: Draft / MVP Architecture
-Last updated: 2026-08-12
+**Document:** architecture.md  
+**Version:** 0.1.1  
+**Status:** Draft / Architecture Baseline  
+**Last updated:** 2026-08-18
 
-1. Purpose
+---
+
+# 1. Purpose
 
 The IT Talent Platform is a skills-based recruitment and talent marketplace focused on the IT industry.
 
 The platform connects:
 
-IT companies and recruiters
-IT professionals
-job seekers, juniors and career switchers
+- IT companies and recruiters
+- IT professionals
+- job seekers, juniors and career switchers
 
-The primary purpose of the MVP is to provide better matching between IT vacancies and candidates by focusing on skills, experience, preferences and requirements, rather than relying primarily on CV keyword matching.
+The primary product goal is to provide better matching between IT vacancies and candidates by focusing on skills, experience, preferences and requirements rather than relying primarily on CV keyword matching.
 
 The core proposition is:
 
-Find the IT professional who actually fits the job, not simply the candidate with the best-looking CV.
+> Find the IT professional who actually fits the job, not simply the candidate with the best-looking CV.
 
-2. Product Vision
+This document describes both:
+
+1. the current technical implementation;
+2. the target architecture and future product direction.
+
+Not every component described in the target architecture has been implemented yet.
+
+---
+
+# 2. Implementation Status
+
+To avoid confusion between the current implementation and the target architecture, this document uses the following status model.
+
+| Status | Meaning |
+|---|---|
+| ✅ Implemented | Functionality currently exists in the codebase |
+| 🟡 Foundation / Partial | Some implementation or database foundation exists, but the complete functionality is not available |
+| 🔵 Planned / Roadmap | Part of the target architecture but not currently implemented |
+
+The architecture and product vision may therefore describe functionality that is planned for future iterations.
+
+---
+
+# 3. Product Vision
 
 The long-term vision is to build an intelligent IT talent marketplace in which:
 
-candidates maintain a skills-based professional profile;
-companies define vacancies in terms of skills and requirements;
-AI assists in extracting and normalizing skills;
-the matching engine identifies relevant candidates;
-recruiters receive transparent explanations for every match;
-professionals receive relevant career and job recommendations.
+- candidates maintain a skills-based professional profile;
+- companies define vacancies in terms of skills and requirements;
+- AI assists in extracting and normalizing skills;
+- the matching engine identifies relevant candidates;
+- recruiters receive transparent explanations for every match;
+- professionals receive relevant career and job recommendations.
 
 The platform should eventually support the complete IT talent lifecycle:
 
+```text
 Profile
    ↓
 Skills
@@ -50,9 +76,7 @@ Hiring
    ↓
 Career Development
 
-The MVP will implement only the first part of this lifecycle.
-
-3. Architectural Goals
+4. Architectural Goals
 
 The architecture must be:
 
@@ -69,8 +93,8 @@ suitable for Vercel deployment;
 extensible without premature microservices;
 suitable for future AI functionality.
 
-4. Architectural Principles
-4.1 Backend owns business logic
+5. Architectural Principles
+5.1 Backend owns business logic
 
 The frontend must not contain critical business rules.
 
@@ -93,20 +117,22 @@ user interaction;
 client-side state;
 form handling;
 API consumption.
-4.2 API-first
+5.2 API-first
 
 Frontend and backend communicate through a documented API.
 
 The frontend must not directly access PostgreSQL.
 
+Current target architecture:
+
 Browser
    ↓
-Next.js / React
+React + Vite
    ↓ HTTPS
 NestJS API
    ↓
 PostgreSQL
-4.3 Skills-first
+5.3 Skills-first
 
 Skills are a fundamental domain concept.
 
@@ -128,9 +154,9 @@ JobRequirement
     ↓
 Skill
 
-This allows the platform to compare candidates and jobs using normalized skills.
+The database contains the foundation for this model, while the complete CandidateSkill, JobRequirement and matching APIs remain planned.
 
-4.4 AI is an assistant, not the source of truth
+5.4 AI is an assistant, not the source of truth
 
 AI may extract or interpret information, but AI output must be:
 
@@ -141,9 +167,11 @@ traceable where practical.
 
 The application must not blindly persist arbitrary AI output.
 
-4.5 Modular monolith
+AI functionality is currently planned and is not part of the current backend implementation.
 
-The initial backend will be a modular monolith.
+5.5 Modular monolith
+
+The initial backend is a modular monolith.
 
 We will not start with microservices.
 
@@ -151,14 +179,14 @@ The application will contain clear domain modules inside one NestJS application.
 
 If a module later becomes sufficiently complex or requires independent scaling, it may be extracted into a separate service.
 
-5. High-Level Architecture
+6. High-Level Architecture
+6.1 Current implementation architecture
                               INTERNET
                                   │
                                   ▼
                        ┌─────────────────────┐
-                       │      Next.js        │
-                       │       React         │
-                       │     Frontend        │
+                       │    React + Vite     │
+                       │      Frontend       │
                        └──────────┬──────────┘
                                   │
                               HTTPS / REST
@@ -168,36 +196,50 @@ If a module later becomes sufficiently complex or requires independent scaling, 
                        │       NestJS        │
                        │      Backend        │
                        │      REST API       │
-                       └──────┬──────┬───────┘
-                              │      │
-                 ┌────────────┘      └─────────────┐
-                 ▼                                  ▼
-          ┌──────────────┐                   ┌──────────────┐
-          │ PostgreSQL   │                   │ AI Services  │
-          │              │                   │              │
-          │ Prisma ORM   │                   │ LLM / AI     │
-          └──────────────┘                   └──────────────┘
+                       └──────────┬──────────┘
+                                  │
+                                  ▼
+                       ┌─────────────────────┐
+                       │     PostgreSQL      │
+                       │      Prisma ORM     │
+                       └─────────────────────┘
+
+The frontend is currently a React/Vite foundation and does not yet implement the complete product UI.
+
+The backend currently contains the initial authentication, users, candidate-profile and skills functionality.
+
+6.2 Target architecture
+
+Future architecture may additionally include:
+
+                       ┌─────────────────────┐
+                       │      AI Services    │
+                       │       LLM / AI      │
+                       └──────────▲──────────┘
+                                  │
+                                  │
+                       ┌──────────┴──────────┐
+                       │       NestJS        │
+                       │      Backend        │
+                       └──────────┬──────────┘
+                                  │
+                ┌─────────────────┴─────────────────┐
+                ▼                                   ▼
+       ┌─────────────────┐                 ┌─────────────────┐
+       │   PostgreSQL    │                 │ Future Services │
+       │      Prisma     │                 │ Search / Queue  │
+       └─────────────────┘                 └─────────────────┘
 
 Future infrastructure may include:
 
-                  ┌─────────────────┐
-                  │ Search Engine   │
-                  │ OpenSearch      │
-                  └─────────────────┘
+OpenSearch;
+object storage;
+queues/workers;
+AI services.
 
-                  ┌─────────────────┐
-                  │ Object Storage  │
-                  │ CV / Documents  │
-                  └─────────────────┘
+These components are planned and are not required for the current implementation.
 
-                  ┌─────────────────┐
-                  │ Queue / Worker  │
-                  │ Background Jobs │
-                  └─────────────────┘
-
-These components are not required for MVP 1.0 unless a concrete requirement emerges.
-
-6. Repository Architecture
+7. Repository Architecture
 
 The project consists of three Git repositories.
 
@@ -214,127 +256,171 @@ GitHub
 ├── it-talent-frontend
 ├── it-talent-backend
 └── it-talent-docs
+8. Frontend Technology
+8.1 Current implementation
 
-7. Frontend Technology
+The frontend currently uses:
 
-The frontend will use:
+React;
+Vite;
+TypeScript;
+Oxlint.
 
-Next.js
-React
-TypeScript
-Tailwind CSS
+The current frontend is a basic React/Vite application foundation.
 
-The frontend will be deployed through Vercel.
+The complete product UI has not yet been implemented.
 
-Expected architecture:
+8.2 Target architecture
 
-it-talent-frontend/
-│
+The frontend is intended to use:
+
+React;
+Vite;
+TypeScript;
+a consistent component architecture;
+client-side routing where required;
+API-based communication with the NestJS backend.
+
+Styling technology may be selected and formalized separately.
+
+The frontend is intended to be deployable through Vercel.
+
+9. Frontend Domain Structure
+
+The target frontend will eventually be organized around domain functionality.
+
+Possible structure:
+
+src/
 ├── app/
 ├── components/
-├── lib/
-├── public/
-├── tests/
-├── .env.example
-├── package.json
-└── README.md
-
-8. Frontend Domain Structure
-
-The application will be organized around domain functionality.
-
-Example:
-
-app/
-├── (auth)/
-│   ├── login/
-│   └── register/
-│
-├── recruiter/
-│   ├── dashboard/
+├── features/
+│   ├── auth/
+│   ├── candidate/
+│   ├── recruiter/
 │   ├── jobs/
-│   ├── candidates/
-│   └── matches/
-│
-├── candidate/
-│   ├── dashboard/
-│   ├── profile/
-│   ├── skills/
-│   └── jobs/
-│
-└── jobs/
+│   └── matching/
+├── lib/
+└── tests/
 
-Shared components:
+The exact directory structure may evolve as implementation progresses.
 
-components/
-├── ui/
-├── forms/
-├── jobs/
-├── candidates/
-├── matching/
-└── layout/
+The recruiter and candidate application areas are currently planned and are not yet implemented as complete product interfaces.
 
-Application utilities:
+10. Backend Technology
 
-lib/
-├── api/
-├── auth/
-├── validation/
-└── utils/
+The backend uses:
 
-The exact directory structure may evolve as implementation begins.
+NestJS;
+TypeScript;
+Prisma;
+PostgreSQL;
+REST API.
 
-9. Backend Technology
+The backend follows a modular monolith architecture.
 
-The backend will use:
+11. Backend Modules
+11.1 Currently implemented
 
-NestJS
-TypeScript
-Prisma
-PostgreSQL
-REST API
-
-Expected structure:
-
-it-talent-backend/
-│
-├── src/
-├── prisma/
-├── test/
-├── .env.example
-├── Dockerfile
-├── package.json
-└── README.md
-
-10. Backend Modules
-
-Initial modules:
+The current backend contains functionality for:
 
 src/
 ├── auth/
 ├── users/
-├── companies/
-├── candidates/
-├── recruiters/
-├── jobs/
 ├── skills/
-├── matching/
-├── ai/
 └── common/
+
+Candidate functionality currently exists as part of the user/profile flow.
+
+11.2 Planned modules
+
+The following domains are part of the target architecture but are not currently implemented as complete application modules:
+
+companies/
+recruiters/
+jobs/
+matching/
+ai/
 
 Future modules may include:
 
-├── applications/
-├── messaging/
-├── assessments/
-├── subscriptions/
-└── notifications/
+applications/
+messaging/
+assessments/
+subscriptions/
+notifications/
 
 These will not be implemented until required.
 
-11. Core Domain Model
+12. Current Backend Functionality
 
-The primary domain entities are:
+The current implementation provides the following functionality.
+
+12.1 Authentication
+Implemented
+user registration;
+user login;
+password hashing;
+JWT-based authentication;
+authentication guards;
+role-based authorization foundation.
+Partial / incomplete
+account activation lifecycle.
+Planned
+refresh tokens;
+logout/session invalidation;
+complete session lifecycle.
+12.2 Users
+Implemented
+authenticated current-user access;
+role information;
+user management functionality;
+administrative user operations;
+role-based access controls.
+
+Additional authorization and response-contract improvements may be made during implementation hardening.
+
+12.3 Candidate profile
+Foundation / Partial
+
+Candidate functionality currently exists through the authenticated user/profile flow.
+
+The current implementation supports the initial candidate-profile foundation.
+
+The complete target Candidate domain is broader and remains partially implemented.
+
+Planned
+complete candidate API;
+advanced candidate skills;
+work experience;
+education;
+certifications;
+CV upload;
+CV processing.
+12.4 Skills
+Implemented
+
+The current backend provides Skills functionality including:
+
+listing skills;
+searching/filtering skills;
+retrieving a skill;
+creating skills;
+updating skills;
+deleting skills.
+
+Additional validation, authorization and test coverage may be improved during implementation hardening.
+
+12.5 Health
+Implemented
+
+The backend provides health functionality including database connectivity checking.
+
+The health endpoint should remain lightweight and suitable for deployment monitoring.
+
+13. Core Domain Model
+
+The target domain entities are:
 
 User
 Candidate
@@ -369,13 +455,18 @@ Conceptually:
                              ▼   ▼
                              Skill
 
+
 Candidate ─────────────── Match ─────────────── Job
 
-12. User Model
+Important:
+
+The domain model represents the target architecture. The presence of a database entity does not mean that a complete API or application module currently exists for that entity.
+
+14. User Model
 
 A User represents an authenticated person.
 
-A user may have a role such as:
+Current roles include:
 
 CANDIDATE
 RECRUITER
@@ -383,7 +474,7 @@ ADMIN
 
 The initial authorization model is role-based.
 
-Example:
+Conceptually:
 
 User
  ├── Candidate
@@ -393,9 +484,11 @@ User
  │
  └── Admin
 
-A recruiter must only have access to resources belonging to their company or resources explicitly made available to them.
+Recruiter/company ownership rules are part of the target authorization model and will be implemented when the corresponding domains are introduced.
 
-13. Company Model
+15. Company Model
+
+Status: 🔵 Planned / Roadmap
 
 A company represents an organization using the platform.
 
@@ -407,13 +500,15 @@ Company
 ├── Recruiter B
 └── Recruiter C
 
-Company ownership and access rules will be enforced by the backend.
+Company ownership and access rules will be enforced by the backend when this functionality is implemented.
 
-14. Candidate Model
+16. Candidate Model
+
+Status: 🟡 Foundation / Partial
 
 A candidate represents an IT professional or job seeker.
 
-Candidate data may include:
+The target Candidate model may include:
 
 name;
 professional title;
@@ -428,9 +523,13 @@ certifications;
 skills;
 CV metadata.
 
+The current implementation provides only the initial candidate-profile foundation.
+
 Sensitive personal information must be minimized.
 
-15. Job Model
+17. Job Model
+
+Status: 🔵 Planned / Roadmap
 
 A job represents a vacancy published by a company.
 
@@ -447,13 +546,15 @@ experience requirements;
 skills;
 availability requirements.
 
-The job description can be processed by the AI layer to generate structured requirements.
+The job description may eventually be processed by the AI layer to generate structured requirements.
 
-16. Skill Model
+18. Skill Model
+
+Status: ✅ Implemented
 
 Skill is a normalized platform entity.
 
-Example:
+Conceptually:
 
 Skill
 ├── id
@@ -466,13 +567,16 @@ Example:
 
 React
 
+
 Aliases:
 - React.js
 - ReactJS
 
 Different representations of the same skill should map to the same normalized skill where possible.
 
-17. CandidateSkill
+19. CandidateSkill
+
+Status: 🔵 Planned / Roadmap
 
 CandidateSkill represents a candidate's relationship with a skill.
 
@@ -488,16 +592,20 @@ CandidateSkill
 
 Possible sources:
 
-CV
-PROFILE
-ASSESSMENT
-SELF_REPORTED
-VERIFIED
-AI_EXTRACTED
+CV;
+PROFILE;
+ASSESSMENT;
+SELF_REPORTED;
+VERIFIED;
+AI_EXTRACTED.
 
-The exact enumeration will be finalized in database.md.
+The exact implementation is defined separately in database.md.
 
-18. JobRequirement
+The existence of the domain model does not imply that the complete CandidateSkill API is currently available.
+
+20. JobRequirement
+
+Status: 🔵 Planned / Roadmap
 
 A JobRequirement represents a skill or requirement for a vacancy.
 
@@ -514,26 +622,33 @@ Example:
 
 Job: Senior React Developer
 
+
 React
 minimumLevel: 4
 required: true
 weight: 0.30
+
 
 TypeScript
 minimumLevel: 3
 required: true
 weight: 0.20
 
+
 AWS
 minimumLevel: 2
 required: false
 weight: 0.10
 
-19. AI Architecture
+This functionality will be implemented together with the Job domain.
+
+21. AI Architecture
+
+Status: 🔵 Planned / Roadmap
 
 AI will initially perform two major functions.
 
-19.1 CV skill extraction
+21.1 CV skill extraction
 CV
  │
  ▼
@@ -547,7 +662,7 @@ Validation
  │
  ▼
 CandidateSkill
-19.2 Job requirement extraction
+21.2 Job requirement extraction
 Job Description
  │
  ▼
@@ -564,11 +679,11 @@ JobRequirement
 
 AI should return structured data rather than unstructured prose wherever possible.
 
-20. AI Data Boundary
+22. AI Data Boundary
 
 The frontend must never communicate directly with an AI provider.
 
-Instead:
+Target architecture:
 
 Frontend
    ↓
@@ -584,35 +699,43 @@ API credentials remain exclusively on the backend.
 
 Environment variables will be used for credentials.
 
-21. Matching Engine
+AI functionality is not currently implemented.
 
-The matching engine calculates the compatibility between a candidate and a job.
+23. Matching Engine
 
-Initial matching factors:
+Status: 🔵 Planned / Roadmap
 
-Skill Match
-Experience Match
-Location Match
-Salary Match
-Availability Match
-Preference Match
+The matching engine will eventually calculate compatibility between a candidate and a job.
 
-An initial conceptual weighting:
+Initial conceptual factors:
+
+Skill Match;
+Experience Match;
+Location Match;
+Salary Match;
+Availability Match;
+Preference Match.
+
+An initial conceptual weighting may be:
 
 Skill Match          50%
 Experience Match     15%
 Location Match       10%
 Salary Match         10%
 Availability Match    5%
-Preferences           10%
+Preferences          10%
 
-These values are initial configuration only.
+These values are initial product assumptions only.
+
+They are not currently implemented as production matching logic.
 
 The final weights will be tested against real recruiter feedback.
 
-Weights must be configurable in the backend.
+Weights must be configurable in the backend when the matching engine is implemented.
 
-22. Match Transparency
+24. Match Transparency
+
+Status: 🔵 Planned / Roadmap
 
 A match must not be presented as an unexplained number.
 
@@ -620,9 +743,10 @@ Instead of:
 
 91% match
 
-the platform should provide:
+the platform should eventually provide:
 
 Overall Match: 91%
+
 
 Skills              95%
 Experience           90%
@@ -632,31 +756,58 @@ Availability        100%
 Preferences          80%
 
 Strong matches:
+
 ✓ React
 ✓ TypeScript
 ✓ Node.js
 ✓ AWS
 
 Potential gap:
+
 △ Kubernetes
 
 This transparency is important for recruiter trust.
 
-23. API Architecture
+25. API Architecture
 
-The API will be versioned.
+The API is versioned.
 
 Initial version:
 
 /api/v1
+25.1 Currently implemented API areas
 
 Authentication:
 
 POST /api/v1/auth/register
 POST /api/v1/auth/login
-POST /api/v1/auth/refresh
+
+Current user:
 
 GET /api/v1/users/me
+
+Candidate profile foundation:
+
+POST /api/v1/users/me/candidate
+
+Skills:
+
+GET /api/v1/skills
+POST /api/v1/skills
+
+The Skills API also provides the corresponding retrieval, update and deletion functionality.
+
+25.2 Planned API areas
+
+Authentication:
+
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+
+Candidates:
+
+GET /api/v1/candidates
+GET /api/v1/candidates/:id
 
 Companies:
 
@@ -669,39 +820,40 @@ GET /api/v1/jobs
 GET /api/v1/jobs/:id
 PUT /api/v1/jobs/:id
 
-Candidates:
-
-GET /api/v1/candidates
-GET /api/v1/candidates/:id
-
-Skills:
-
-GET /api/v1/skills
-POST /api/v1/skills
-
 Matching:
 
 POST /api/v1/jobs/:id/match
 GET /api/v1/jobs/:id/matches
 GET /api/v1/matches/:id
 
-The API specification will be expanded in architecture/api.md.
+The API specification will be expanded in:
 
-24. API Contract
+architecture/api.md
+
+Only endpoints marked as implemented should be treated as currently available.
+
+26. API Contract
 
 The API is the contract between frontend and backend.
+
 Frontend development must not depend on direct database structures.
+
 The backend API should expose domain-level resources.
 
-For example, the frontend should request:
+For example, the future frontend should request:
+
 GET /api/v1/jobs/123/matches
+
 rather than attempting to reproduce the matching algorithm itself.
 
-25. Database
+27. Database
 
-PostgreSQL will be the primary relational database.
-Prisma will be used as the ORM.
-Initial entities:
+PostgreSQL is the primary relational database.
+
+Prisma is used as the ORM.
+
+The target domain entities include:
+
 User
 Company
 Recruiter
@@ -712,35 +864,49 @@ CandidateSkill
 JobRequirement
 Match
 
-Additional entities will be introduced when required.
-The complete database design will be documented separately in:
+The current database model may contain foundations for functionality that is not yet exposed through complete application APIs.
+
+The complete database design is documented separately in:
 
 architecture/database.md
+28. Authentication
 
-26. Authentication
+Status: 🟡 Foundation / Partial
 
-Authentication will be handled by the backend.
+Authentication is handled by the backend.
 
-The system will support:
-
+Currently implemented
 registration;
 login;
-logout;
-token refresh;
-authenticated sessions;
-role-based authorization.
+password hashing;
+JWT authentication;
+authenticated user access;
+role-based authorization foundation.
+Not yet fully implemented
+complete account activation lifecycle;
+refresh tokens;
+logout/session invalidation.
 
-The precise authentication implementation will be finalized during backend implementation.
+The precise authentication lifecycle must be finalized before these additional features are implemented.
 
 The system must support secure token handling and avoid exposing sensitive authentication data unnecessarily to browser-side JavaScript.
 
-27. Authorization
+29. Authorization
 
-Authentication answers: Who are you?
-Authorization answers: What are you allowed to access?
+Authentication answers:
+
+Who are you?
+
+Authorization answers:
+
+What are you allowed to access?
+
 Authorization must be enforced by the backend.
 
-Examples:
+Current authorization includes role-based protection for implemented resources.
+
+Future examples include:
+
 Candidate → own profile
 Recruiter → company jobs
 Recruiter → candidates permitted by platform rules
@@ -748,10 +914,8 @@ Admin → administrative resources
 
 A frontend UI restriction is not sufficient security.
 
-28. Deployment Architecture
-
-The initial infrastructure:
-
+30. Deployment Architecture
+Target deployment architecture
                      GitHub
                         │
              ┌──────────┴──────────┐
@@ -766,11 +930,15 @@ The initial infrastructure:
                         ▼
                    PostgreSQL
 
+Vercel is the intended deployment platform.
+
+The actual production deployment configuration is separate from the architecture definition and must be verified independently.
+
 The documentation repository is independent.
 
-29. Development Workflow
+31. Development Workflow
 
-The expected workflow is:
+The intended workflow is:
 
 Feature branch
       ↓
@@ -792,9 +960,13 @@ Merge into main
       ↓
 Production deployment
 
-Production deployments must originate from the protected main branch.
+This represents the target development workflow.
 
-30. Git Branch Strategy
+Automated CI/CD must be implemented and verified before this workflow is considered fully operational.
+
+Production deployments should originate from the protected main branch.
+
+32. Git Branch Strategy
 
 Initial strategy:
 
@@ -811,11 +983,11 @@ feature/recruiter-dashboard
 
 We will avoid an unnecessarily complicated Git flow during the MVP.
 
-31. Environment Configuration
+33. Environment Configuration
 
 Environment-specific secrets must never be committed to GitHub.
 
-Each repository will contain:
+Each repository should contain an appropriate:
 
 .env.example
 
@@ -826,19 +998,26 @@ Local secret files such as:
 
 must be included in .gitignore.
 
-Example frontend variable:
+Frontend
 
-NEXT_PUBLIC_API_URL=
+The Vite frontend should use a Vite-compatible public environment variable for the backend API URL.
 
-Example backend variables:
+Example:
+
+VITE_API_URL=
+Backend
+
+Example variables:
 
 DATABASE_URL=
 JWT_SECRET=
 AI_API_KEY=
 
-Actual values must be configured through the appropriate environment management system.
+AI_API_KEY is required only when AI functionality is implemented.
 
-32. Security Principles
+Actual secret values must be configured through the appropriate environment management system.
+
+34. Security Principles
 
 Security is a first-class architectural concern.
 
@@ -860,7 +1039,10 @@ least-privilege access.
 Security details will be documented in:
 
 architecture/security.md
-33. GDPR / Privacy
+
+Not every listed security control is currently implemented.
+
+35. GDPR / Privacy
 
 The platform will potentially process:
 
@@ -888,7 +1070,9 @@ auditability.
 
 The exact legal implementation must be reviewed before production launch.
 
-34. File and CV Storage
+36. File and CV Storage
+
+Status: 🔵 Planned / Roadmap
 
 CVs and other uploaded documents should not initially be stored directly inside PostgreSQL as large binary objects unless there is a compelling reason.
 
@@ -903,7 +1087,7 @@ Candidate
 
 For MVP development, the precise storage provider will be selected when CV upload functionality is implemented.
 
-35. Search
+37. Search
 
 PostgreSQL will initially be sufficient for basic queries.
 
@@ -916,44 +1100,51 @@ semantic search is introduced.
 
 Do not introduce OpenSearch prematurely.
 
-36. Background Processing
+38. Background Processing
 
 Long-running tasks should eventually be moved to background jobs.
 
 Potential background operations:
 
-CV processing
-AI extraction
-Bulk candidate matching
-Email notifications
-Search indexing
-Analytics processing
+CV processing;
+AI extraction;
+bulk candidate matching;
+email notifications;
+search indexing;
+analytics processing.
 
 For MVP, synchronous processing may be used where acceptable.
 
 A queue/worker architecture will be introduced when processing time or volume requires it.
 
-37. Testing Strategy
+39. Testing Strategy
 
 Testing will exist at multiple levels.
 
+Current status
 Backend
+
+Testing infrastructure exists for:
+
 unit tests;
 service tests;
-integration tests;
-API tests.
+API/e2e testing.
+
+Current product test coverage is incomplete and still contains starter/template coverage that must be replaced with project-specific tests.
+
 Frontend
-component tests;
-form validation tests;
-end-to-end tests.
+
+Frontend testing is planned but the complete application test suite is not yet implemented.
+
 Matching Engine
 
-The matching engine requires dedicated tests because its output directly affects product value.
+Matching requires dedicated tests when the matching engine is implemented because its output directly affects product value.
 
-Example:
+Example future test:
 
 Candidate A
 Job B
+
 
 Expected:
 Skill Match >= 90%
@@ -961,74 +1152,83 @@ Overall Match >= 85%
 
 The exact thresholds will be defined during implementation.
 
-38. Observability
+40. Current MVP Implementation Status
 
-As the platform develops, we should introduce:
+The current implementation is incremental.
 
-structured application logs;
-error tracking;
-API performance monitoring;
-database monitoring;
-AI usage monitoring.
+40.1 Implemented
+Backend
+├── NestJS
+├── TypeScript
+├── Prisma
+├── PostgreSQL
+├── REST API
+├── API versioning foundation
+├── Authentication
+│   ├── Register
+│   └── Login
+├── JWT authentication
+├── Password hashing
+├── Users
+├── Role-based authorization foundation
+├── Candidate profile foundation
+├── Skills
+└── Health/database check
 
-The MVP should avoid unnecessary infrastructure but must make production errors diagnosable.
 
-39. MVP Scope
+Frontend
+├── React
+├── Vite
+├── TypeScript
+└── Oxlint
+40.2 Foundation / Partial
+Candidate profile
+Authentication lifecycle
+Database/domain foundations for future domains
+Testing infrastructure
+Deployment architecture
+40.3 Planned / Roadmap
+Company
 Recruiter
-
-The MVP supports:
-
-account creation;
-company profile;
-recruiter profile;
-job creation;
-job editing;
-job viewing;
-candidate discovery;
-candidate profile viewing;
-matching;
-match score;
-match explanation.
-Candidate
-
-The MVP supports:
-
-account creation;
-candidate profile;
-CV upload;
-skills;
-experience;
-salary preference;
-location preference;
-availability;
-job discovery;
-matching results.
+Jobs
+CandidateSkill API
+JobRequirement API
+Matching
+Match transparency
 AI
+CV upload
+CV skill extraction
+Job requirement extraction
+Complete frontend application
+Refresh tokens
+Logout/session invalidation
+CI/CD
+Advanced testing
+41. Features Outside the Current Implementation
 
-The MVP supports:
+The following features are deliberately not considered implemented merely because they exist in the target architecture:
 
-CV → skill extraction;
-job description → requirement extraction;
-skill normalization;
-match explanation.
-40. Features Explicitly Outside MVP 1.0
+company management;
+recruiter management;
+job management;
+matching;
+AI extraction;
+CV upload;
+advanced candidate skills;
+advanced technical assessments;
+payments;
+messaging;
+mobile application;
+ATS integrations;
+LinkedIn automated sourcing;
+complex recommendation engine;
+advanced analytics;
+enterprise SSO;
+automated recruitment workflows.
 
-The following are deliberately postponed:
+Future functionality may be added based on product validation.
 
-Payments
-Messaging
-Mobile application
-Advanced technical assessments
-ATS integrations
-LinkedIn automated sourcing
-Complex recommendation engine
-Advanced analytics
-Enterprise SSO
-Automated recruitment workflows
-
-These features may be added later based on user validation.
-
-41. Future Product Evolution
+42. Future Product Evolution
 
 The long-term platform may evolve into:
 
@@ -1058,11 +1258,11 @@ AI sourcing;
 ATS integrations;
 candidate communication;
 employer branding.
-42. Scalability Strategy
+43. Scalability Strategy
 
 The platform will initially use:
 
-Next.js
+React + Vite
 +
 NestJS modular monolith
 +
@@ -1085,7 +1285,7 @@ If necessary, individual modules can later become independent services.
 
 The architecture must therefore maintain clear domain boundaries even while operating as one application.
 
-43. Architectural Decision Records
+44. Architectural Decision Records
 
 Important decisions will be documented under:
 
@@ -1094,7 +1294,7 @@ decisions/
 Initial ADRs:
 
 ADR-001 — Separate frontend and backend repositories
-ADR-002 — Next.js for frontend
+ADR-002 — React + Vite for frontend
 ADR-003 — NestJS for backend
 ADR-004 — PostgreSQL as primary database
 ADR-005 — Skills-first data model
@@ -1104,20 +1304,24 @@ ADR-008 — REST API
 
 Each ADR should document:
 
-Context
-Decision
-Alternatives
-Consequences
-44. Initial Architecture Decisions
+Context;
+Decision;
+Alternatives;
+Consequences.
+
+ADR-002 must reflect the current React + Vite decision rather than the previous Next.js architecture.
+
+45. Initial Architecture Decisions
 
 The following decisions are considered accepted for Architecture v0.1:
 
 Decision	Choice
-Frontend	Next.js / React
+Frontend	React + Vite
 Language	TypeScript
-Styling	Tailwind CSS
+Linting	Oxlint
 Backend	NestJS
 API	REST
+API Version	/api/v1
 Database	PostgreSQL
 ORM	Prisma
 Architecture	Modular monolith
@@ -1129,7 +1333,7 @@ Matching	Skills-first
 Search	PostgreSQL initially
 File storage	External object storage when required
 Microservices	Deferred
-45. Development Philosophy
+46. Development Philosophy
 
 The project will follow:
 
@@ -1146,9 +1350,9 @@ measurable matching quality.
 
 We will avoid building infrastructure simply because it might be useful someday.
 
-46. Definition of MVP Success
+47. Definition of MVP Success
 
-The MVP should demonstrate one complete end-to-end workflow:
+The target MVP should eventually demonstrate one complete end-to-end workflow:
 
 Recruiter
    │
@@ -1176,11 +1380,15 @@ Recruiter understands WHY
    ▼
 Recruiter selects candidate
 
-If this workflow works reliably and recruiters find it genuinely useful, we have a foundation for the commercial product.
+This is the target MVP workflow, not the current implementation.
 
-47. Next Architecture Documents
+The current implementation does not yet provide this complete end-to-end workflow.
 
-After this document, the documentation repository should contain:
+If this workflow works reliably and recruiters find it genuinely useful, it provides a foundation for the commercial product.
+
+48. Next Architecture Documents
+
+The documentation repository should contain:
 
 it-talent-docs/
 │
@@ -1188,7 +1396,7 @@ it-talent-docs/
 │
 ├── architecture/
 │   ├── architecture.md      ← CURRENT
-│   ├── database.md          ← NEXT
+│   ├── database.md
 │   ├── api.md
 │   └── security.md
 │
@@ -1200,4 +1408,20 @@ it-talent-docs/
 └── decisions/
     └── README.md
 
-Status of architecture.md: COMPLETE — v0.1.0
+The following documents should use the same distinction between:
+
+implemented;
+foundation/partial;
+planned/roadmap.
+
+49. Document Status
+
+Document: architecture.md
+Version: 0.1.1
+Status: Draft / Architecture Baseline
+Last updated: 2026-08-18
+
+This document describes the current implementation together with the accepted target architecture.
+
+Future implementation work must be checked against this document and the more detailed API, database, security and product documentation.
+
