@@ -484,6 +484,77 @@ The backend must enforce appropriate authorization and resource ownership rules.
 
 # 18. Candidate
 
+Candidate functionality belongs to the Candidate domain rather than the Users domain.
+
+## Current Backend Implementation
+
+**Status:** 🟡 Foundation / Partial
+
+The current backend exposes Candidate functionality through the Users resource:
+
+```text
+GET /api/v1/users/me/candidate
+POST /api/v1/users/me/candidate
+```
+
+These endpoints represent the current implementation and are not the canonical long-term Candidate API.
+
+## Canonical Candidate API
+
+The target Candidate API is:
+
+```text
+GET /api/v1/candidates/me
+POST /api/v1/candidates
+PATCH /api/v1/candidates/me
+```
+
+**Status:** 🔵 Planned / Roadmap
+
+The canonical Candidate API establishes Candidate as an independent domain resource.
+
+The future refactoring should migrate Candidate operations from the current `/users/me/candidate` routes to the canonical `/candidates` resource.
+
+Example profile payload:
+
+```json
+{
+  "headline": "Senior React Developer",
+  "summary": "Software engineer with 6 years of experience.",
+  "location": "Amsterdam",
+  "salaryMin": 5500,
+  "salaryMax": 6500,
+  "currency": "EUR",
+  "remotePreference": "HYBRID"
+}
+```
+
+Not every field in this example is necessarily implemented.
+
+The actual backend DTO and response structure remain authoritative for the current implementation.
+
+## Migration Direction
+
+The intended API migration is:
+
+```text
+Current:
+
+/api/v1/users/me/candidate
+
+        ↓
+
+Canonical:
+
+/api/v1/candidates/me
+/api/v1/candidates
+```
+
+The current routes should not be considered part of the canonical long-term API.
+
+No backend implementation change is part of this documentation ticket.
+
+
 Candidate functionality belongs to the Candidate domain rather than the canonical Users domain.
 
 ## Canonical Candidate API
