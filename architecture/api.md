@@ -1,6 +1,6 @@
 # IT Talent Platform — API Specification
 
-**Document:** `api.md`
+**Document:** api.md
 **Version:** 0.2.0
 **Status:** Canonical API Contract Baseline
 **Last updated:** 2026-08-28
@@ -38,13 +38,14 @@ This document distinguishes between:
 
 * endpoints currently implemented;
 * endpoints that are partially implemented;
+* canonical target endpoints;
 * planned endpoints belonging to the target platform architecture.
 
-The actual NestJS controllers, DTOs, guards and services are the implementation source of truth.
+The actual NestJS controllers, DTOs, guards, services and tests remain the implementation source of truth.
 
 ---
 
-# 2. API Implementation Status
+# 2. API Contract Status Model
 
 The following status model is used throughout this document.
 
@@ -52,22 +53,9 @@ The following status model is used throughout this document.
 | ----------------------- | --------------------------------------------------------------------------------- |
 | ✅ Implemented           | Endpoint currently exists and is part of the active backend implementation        |
 | 🟡 Foundation / Partial | Related functionality exists, but the complete endpoint/domain is not implemented |
-| 🔵 Planned / Roadmap    | Target architecture only                                                          |
+| 🔵 Planned / Roadmap    | Target architecture only; not currently implemented                               |
 
-The presence of an endpoint in this document does not mean that the endpoint currently exists.
-
-## 2.1 Contract Status Rules
-
-This document distinguishes strictly between the current API contract and the target architecture.
-
-The following rules apply:
-
-* An endpoint marked `✅ Implemented` must exist in the current backend implementation.
-* An endpoint marked `🟡 Foundation / Partial` must have identifiable backend functionality, but may not yet represent a complete domain contract.
-* An endpoint marked `🔵 Planned / Roadmap` must not be treated as an implemented API.
-* Example request and response payloads are illustrative unless explicitly identified as the implemented DTO/schema.
-* When this document differs from the backend implementation, the discrepancy must be recorded and resolved rather than silently treating the documented behavior as implemented.
-* Target API changes must not be considered canonical until they have been explicitly reviewed and accepted.
+A documented target endpoint must not be interpreted as an implemented endpoint unless the backend implementation confirms its existence.
 
 ---
 
@@ -126,9 +114,9 @@ The target API version is:
 /api/v1
 ```
 
-Example:
+Examples:
 
-```http
+```text
 GET /api/v1/jobs
 GET /api/v1/candidates
 ```
@@ -169,23 +157,14 @@ Conceptually:
 
 ```text
 Client
-
   │
-
   ├── Login/Register
-
   ▼
-
 Backend
-
   │
-
   └── Authenticated session/token
-
         │
-
         ▼
-
 Protected API
 ```
 
@@ -201,9 +180,11 @@ The exact token/session transport mechanism must match the current backend imple
 
 The target platform roles are:
 
-* `CANDIDATE`
-* `RECRUITER`
-* `ADMIN`
+```text
+CANDIDATE
+RECRUITER
+ADMIN
+```
 
 Authorization must be enforced by the backend.
 
@@ -279,7 +260,7 @@ Collection endpoints should support pagination where required.
 
 Example:
 
-```http
+```text
 GET /api/v1/jobs?page=1&limit=20
 ```
 
@@ -317,7 +298,7 @@ Collection endpoints may support sorting.
 
 Example:
 
-```http
+```text
 GET /api/v1/jobs?sort=createdAt&order=desc
 ```
 
@@ -333,13 +314,13 @@ Collection endpoints may support filtering.
 
 Example:
 
-```http
+```text
 GET /api/v1/jobs?status=PUBLISHED&workMode=REMOTE
 ```
 
 Future candidate discovery may support:
 
-```http
+```text
 GET /api/v1/candidates?skill=react&location=Amsterdam
 ```
 
@@ -355,7 +336,7 @@ Advanced filtering is roadmap functionality.
 
 Target:
 
-```http
+```text
 POST /api/v1/auth/register
 ```
 
@@ -371,15 +352,13 @@ Request:
 
 The exact request and response schema must match the implemented DTO.
 
----
-
-# 15. Login
+## Login
 
 **Status:** ✅ Implemented / Verify against current controller contract
 
 Target:
 
-```http
+```text
 POST /api/v1/auth/login
 ```
 
@@ -398,13 +377,36 @@ The documentation must not assume JWT/cookie/refresh-token behavior unless it ex
 
 ---
 
+# 15. Users
+
+The Users domain represents the platform user account and its core user-management operations.
+
+## Canonical Users API
+
+The canonical Users endpoints are:
+
+| Method | Endpoint            | Purpose                              |
+| ------ | ------------------- | ------------------------------------ |
+| GET    | `/api/v1/users/me`  | Get the authenticated user's account |
+| POST   | `/api/v1/users`     | Create a user                        |
+| GET    | `/api/v1/users`     | List users                           |
+| GET    | `/api/v1/users/:id` | Get a user by ID                     |
+| PATCH  | `/api/v1/users/:id` | Update a user                        |
+| DELETE | `/api/v1/users/:id` | Delete a user                        |
+
+These endpoints define the target Users resource boundary.
+
+User-specific Candidate and Candidate Skill operations are not part of the canonical Users API.
+
+---
+
 # 16. Current User
 
 **Status:** 🟡 Foundation / Partial
 
-Target:
+Canonical endpoint:
 
-```http
+```text
 GET /api/v1/users/me
 ```
 
@@ -424,17 +426,77 @@ The exact response must match the current backend DTO.
 
 ---
 
-# 17. Candidate Profile
+# 17. User Management
+
+The following endpoints belong to the canonical Users API.
+
+## Create User
 
 **Status:** 🟡 Foundation / Partial
 
+```text
+POST /api/v1/users
+```
+
+The exact request and response schemas must match the current backend implementation.
+
+## List Users
+
+**Status:** 🟡 Foundation / Partial
+
+```text
+GET /api/v1/users
+```
+
+Pagination, filtering and sorting must only be documented when supported by the backend.
+
+## Get User
+
+**Status:** 🟡 Foundation / Partial
+
+```text
+GET /api/v1/users/:id
+```
+
+The returned information must respect authentication, authorization and privacy rules.
+
+## Update User
+
+**Status:** 🟡 Foundation / Partial
+
+```text
+PATCH /api/v1/users/:id
+```
+
+The backend must enforce which fields the authenticated user or authorized administrator may modify.
+
+## Delete User
+
+**Status:** 🟡 Foundation / Partial
+
+```text
+DELETE /api/v1/users/:id
+```
+
+The backend must enforce appropriate authorization and resource ownership rules.
+
+---
+
+# 18. Candidate
+
+Candidate functionality belongs to the Candidate domain rather than the canonical Users domain.
+
+## Canonical Candidate API
+
 Target endpoints:
 
-```http
+```text
 GET /api/v1/candidates/me
 POST /api/v1/candidates
 PATCH /api/v1/candidates/me
 ```
+
+**Status:** 🔵 Planned / Roadmap unless confirmed by the backend implementation.
 
 Example profile payload:
 
@@ -454,20 +516,39 @@ Not every field in this example is necessarily implemented.
 
 The actual DTO/schema is authoritative.
 
+## Legacy / Current User-Candidate Routes
+
+The following routes may exist in the current backend implementation:
+
+```text
+GET /api/v1/users/me/candidate
+POST /api/v1/users/me/candidate
+```
+
+These routes are not part of the canonical target Candidate API.
+
+If they exist in the current backend, they represent the current implementation state and should be treated as migration/refactoring candidates for the future Candidate domain.
+
+They must not be interpreted as the canonical long-term Candidate route structure.
+
 ---
 
-# 18. Candidate Skills
+# 19. Candidate Skills
 
-**Status:** 🔵 Planned / Roadmap
+Candidate Skills belongs to the Candidate domain and is separate from the canonical Users API.
+
+## Canonical Candidate Skills API
 
 Target endpoints:
 
-```http
+```text
 GET /api/v1/candidates/me/skills
 POST /api/v1/candidates/me/skills
 PATCH /api/v1/candidates/me/skills/:id
 DELETE /api/v1/candidates/me/skills/:id
 ```
+
+**Status:** 🔵 Planned / Roadmap unless confirmed by the backend implementation.
 
 Example:
 
@@ -479,45 +560,64 @@ Example:
 }
 ```
 
-The complete CandidateSkill relationship is not currently part of the implemented API foundation.
+## Legacy / Current User-Skills Routes
+
+The following routes may exist in the current backend implementation:
+
+```text
+GET /api/v1/users/me/skills
+POST /api/v1/users/me/skills
+PATCH /api/v1/users/me/skills/:skillId
+DELETE /api/v1/users/me/skills/:skillId
+```
+
+These routes are not part of the canonical target Candidate Skills API.
+
+If they exist in the current backend, they represent the current implementation state and should be treated as migration/refactoring candidates.
 
 ---
 
-# 19. Candidate Discovery
+# 20. Candidate Discovery
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 GET /api/v1/candidates
 ```
 
 Potential filters:
 
-* skill
-* location
-* experience
-* page
-* limit
+```text
+skill
+location
+experience
+page
+limit
+```
 
 Example:
 
-```http
-GET /api/v1/candidates?skill=react&location=Amsterdam&page=1&limit=20
+```text
+GET /api/v1/candidates
+  ?skill=react
+  &location=Amsterdam
+  &page=1
+  &limit=20
 ```
 
 Candidate discovery requires recruiter/company authorization and privacy controls.
 
 ---
 
-# 20. Candidate Detail
+# 21. Candidate Detail
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 GET /api/v1/candidates/:id
 ```
 
@@ -527,13 +627,13 @@ Private candidate information must not automatically be exposed.
 
 ---
 
-# 21. Company
+# 22. Company
 
 **Status:** 🔵 Planned / Roadmap
 
 Target endpoints:
 
-```http
+```text
 GET /api/v1/companies/:id
 PATCH /api/v1/companies/me
 ```
@@ -544,13 +644,13 @@ Company functionality is not currently part of the implemented MVP foundation.
 
 ---
 
-# 22. Recruiter Profile
+# 23. Recruiter Profile
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 GET /api/v1/recruiters/me
 PATCH /api/v1/recruiters/me
 ```
@@ -559,13 +659,13 @@ Recruiter functionality depends on the Company/Recruiter domain implementation.
 
 ---
 
-# 23. Jobs
+# 24. Jobs
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 POST /api/v1/jobs
 GET /api/v1/jobs
 GET /api/v1/jobs/:id
@@ -591,13 +691,13 @@ The Jobs domain depends on Company and Recruiter relationships.
 
 ---
 
-# 24. Job Publishing
+# 25. Job Publishing
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 POST /api/v1/jobs/:id/publish
 ```
 
@@ -605,13 +705,13 @@ The backend should validate required information before publishing.
 
 ---
 
-# 25. Job Closing
+# 26. Job Closing
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 POST /api/v1/jobs/:id/close
 ```
 
@@ -619,13 +719,13 @@ Closed jobs should not appear in normal active job discovery.
 
 ---
 
-# 26. Job Requirements
+# 27. Job Requirements
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 GET /api/v1/jobs/:id/requirements
 POST /api/v1/jobs/:id/requirements
 PATCH /api/v1/jobs/:jobId/requirements/:requirementId
@@ -646,7 +746,7 @@ This functionality depends on the JobRequirement database model.
 
 ---
 
-# 27. Skills
+# 28. Skills
 
 **Status:** ✅ Implemented
 
@@ -654,13 +754,13 @@ The Skills domain is part of the current backend foundation.
 
 Target endpoint:
 
-```http
+```text
 GET /api/v1/skills
 ```
 
 Potential search:
 
-```http
+```text
 GET /api/v1/skills?search=react
 ```
 
@@ -683,13 +783,13 @@ The actual endpoint path, query parameters and response structure must match the
 
 ---
 
-# 28. Skill Creation
+# 29. Skill Creation
 
 **Status:** 🟡 Foundation / Partial
 
 Target:
 
-```http
+```text
 POST /api/v1/skills
 ```
 
@@ -701,7 +801,7 @@ The exact authorization rules must match the current implementation.
 
 ---
 
-# 29. Matching
+# 30. Matching
 
 **Status:** 🔵 Planned / Roadmap
 
@@ -709,7 +809,7 @@ Matching is a core future domain.
 
 Target:
 
-```http
+```text
 POST /api/v1/jobs/:id/match
 ```
 
@@ -717,23 +817,23 @@ Conceptually:
 
 ```text
 Job
-  ↓
+ ↓
 Requirements
-  ↓
+ ↓
 Candidate pool
-  ↓
+ ↓
 Skill comparison
-  ↓
+ ↓
 Experience
-  ↓
+ ↓
 Location
-  ↓
+ ↓
 Salary
-  ↓
+ ↓
 Availability
-  ↓
+ ↓
 Preferences
-  ↓
+ ↓
 Score
 ```
 
@@ -741,13 +841,13 @@ The matching engine is not currently considered implemented merely because this 
 
 ---
 
-# 30. Job Matches
+# 31. Job Matches
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 GET /api/v1/jobs/:id/matches
 ```
 
@@ -782,13 +882,13 @@ Target response:
 
 ---
 
-# 31. Match Detail
+# 32. Match Detail
 
 **Status:** 🔵 Planned / Roadmap
 
 Target:
 
-```http
+```text
 GET /api/v1/matches/:id
 ```
 
@@ -803,7 +903,7 @@ The response should eventually contain:
 
 ---
 
-# 32. Match Explanation
+# 33. Match Explanation
 
 **Status:** 🔵 Planned / Roadmap
 
@@ -837,13 +937,13 @@ AI may assist with natural-language presentation, but must not invent match reas
 
 ---
 
-# 33. CV Upload
+# 34. CV Upload
 
 **Status:** 🔵 Planned / Roadmap
 
 Potential future endpoint:
 
-```http
+```text
 POST /api/v1/candidates/me/documents
 ```
 
@@ -865,7 +965,7 @@ No CV upload API should be considered implemented until the corresponding backen
 
 ---
 
-# 34. AI Processing
+# 35. AI Processing
 
 **Status:** 🔵 Planned / Roadmap
 
@@ -875,7 +975,7 @@ Instead, the backend should expose domain-level operations.
 
 Example:
 
-```http
+```text
 POST /api/v1/candidates/me/analyze-cv
 ```
 
@@ -883,11 +983,11 @@ Conceptually:
 
 ```text
 CV
-  ↓
+ ↓
 Candidate Processing Service
-  ↓
+ ↓
 AI Provider
-  ↓
+ ↓
 Structured CandidateSkill
 ```
 
@@ -895,13 +995,13 @@ AI credentials remain backend-only.
 
 ---
 
-# 35. AI Job Analysis
+# 36. AI Job Analysis
 
 **Status:** 🔵 Planned / Roadmap
 
 Potential endpoint:
 
-```http
+```text
 POST /api/v1/jobs/:id/analyze
 ```
 
@@ -918,7 +1018,7 @@ This functionality is not currently part of the implemented API.
 
 ---
 
-# 36. Idempotency
+# 37. Idempotency
 
 **Status:** 🔵 Planned
 
@@ -933,7 +1033,7 @@ It should be introduced when a concrete operation requires it.
 
 ---
 
-# 37. Rate Limiting
+# 38. Rate Limiting
 
 **Status:** 🔵 Security / Implementation Requirement
 
@@ -953,7 +1053,7 @@ Exact limits depend on the actual implementation and deployment environment.
 
 ---
 
-# 38. API Security
+# 39. API Security
 
 Production API traffic must use HTTPS.
 
@@ -980,7 +1080,7 @@ where these values can be derived from authenticated context.
 
 ---
 
-# 39. API Validation
+# 40. API Validation
 
 **Status:** 🟡 Foundation / Partial
 
@@ -1001,7 +1101,7 @@ Only DTOs that actually exist in the backend should be considered implemented.
 
 ---
 
-# 40. API DTO Strategy
+# 41. API DTO Strategy
 
 Database entities must not automatically become API responses.
 
@@ -1009,9 +1109,9 @@ Target flow:
 
 ```text
 Prisma Entity
-      ↓
+       ↓
 Response DTO
-      ↓
+       ↓
 Frontend
 ```
 
@@ -1024,7 +1124,7 @@ This prevents accidental exposure of:
 
 ---
 
-# 41. API Documentation
+# 42. API Documentation
 
 **Status:** 🔵 Planned / Development Requirement
 
@@ -1042,7 +1142,7 @@ OpenAPI should eventually become the primary machine-readable API contract for f
 
 ---
 
-# 42. Frontend API Client
+# 43. Frontend API Client
 
 **Status:** 🟡 Foundation / Partial
 
@@ -1065,7 +1165,7 @@ Components should not duplicate raw API logic throughout the application.
 
 ---
 
-# 43. API Error Handling in Frontend
+# 44. API Error Handling in Frontend
 
 The frontend should map backend errors to appropriate UI states.
 
@@ -1082,7 +1182,7 @@ The exact implementation depends on the current frontend API client.
 
 ---
 
-# 44. API Evolution
+# 45. API Evolution
 
 Non-breaking changes may be introduced within `/v1`.
 
@@ -1099,7 +1199,7 @@ The MVP should avoid unnecessary breaking changes.
 
 ---
 
-# 45. Current API Scope
+# 46. Current API Scope
 
 ## Implemented / Foundation
 
@@ -1129,11 +1229,13 @@ The MVP should avoid unnecessary breaking changes.
 * AI CV analysis
 * AI Job analysis
 
+The exact implementation status must always be verified against the backend source of truth.
+
 ---
 
-# 46. Target MVP API Scope
+# 47. Target MVP API Scope
 
-The target MVP API is intended to eventually support:
+The target MVP API is intended to support:
 
 ```text
 Authentication
@@ -1161,7 +1263,7 @@ This is the target architecture, not a statement that every component is current
 
 ---
 
-# 47. API Implementation Order
+# 48. API Implementation Order
 
 The target implementation order is:
 
@@ -1184,13 +1286,13 @@ Actual implementation order may differ where existing code already provides func
 
 ---
 
-# 48. Health Check
+# 49. Health Check
 
 **Status:** 🟡 Verify against implementation
 
 Target:
 
-```http
+```text
 GET /api/v1/health
 ```
 
@@ -1208,7 +1310,7 @@ The exact route must match the backend implementation.
 
 ---
 
-# 49. API Definition of Done
+# 50. API Definition of Done
 
 An endpoint is considered implemented when:
 
@@ -1225,188 +1327,41 @@ Documentation alone does not make an endpoint implemented.
 
 ---
 
-# 50. API Contract and Source of Truth
+# 51. Source of Truth
 
-The API contract is the shared interface between the backend, frontend, and documentation.
-
-The following sources must be kept aligned:
-
-1. Backend implementation
-
-   * Controllers
-   * DTOs
-   * Guards
-   * Services
-
-2. Automated tests
-
-   * Unit tests
-   * Integration tests
-   * Contract tests
-   * End-to-end tests
-
-3. OpenAPI specification
-
-4. This document (`architecture/api.md`)
-
-No single implementation artifact is sufficient by itself to define the complete API contract.
-
-If a discrepancy is found between the documented contract and the implemented API, the discrepancy must be explicitly identified and resolved.
-
-The accepted API contract must be reflected consistently in:
+For API implementation, the following hierarchy applies:
 
 ```text
-Backend
-    ↓
-OpenAPI
-    ↓
-Frontend
-    ↓
-Documentation
-    ↓
-Automated contract/E2E tests
+1. NestJS controllers
+        ↓
+2. DTOs
+        ↓
+3. Services / Guards
+        ↓
+4. Automated tests
+        ↓
+5. OpenAPI/Swagger
+        ↓
+6. api.md
 ```
 
----
+If `api.md` differs from the actual backend implementation, the discrepancy must be identified and corrected.
 
-# 51. Current API Inventory
+The documentation must not describe roadmap functionality as implemented functionality.
 
-This section records the API endpoints that are currently part of the backend implementation.
-
-The inventory is intentionally limited to endpoints that can be verified against the current backend implementation.
-
-## Authentication
-
-| Method | Endpoint                | Status        |
-| ------ | ----------------------- | ------------- |
-| POST   | `/api/v1/auth/register` | ✅ Implemented |
-| POST   | `/api/v1/auth/login`    | ✅ Implemented |
-
-## Users
-
-| Method | Endpoint                     | Status                  |
-| ------ | ---------------------------- | ----------------------- |
-| GET    | `/api/v1/users/me`           | 🟡 Foundation / Partial |
-| GET    | `/api/v1/users/me/candidate` | 🟡 Foundation / Partial |
-| POST   | `/api/v1/users/me/candidate` | 🟡 Foundation / Partial |
-| POST   | `/api/v1/users`              | 🟡 Foundation / Partial |
-| GET    | `/api/v1/users`              | 🟡 Foundation / Partial |
-| GET    | `/api/v1/users/:id`          | 🟡 Foundation / Partial |
-| PATCH  | `/api/v1/users/:id`          | 🟡 Foundation / Partial |
-| DELETE | `/api/v1/users/:id`          | 🟡 Foundation / Partial |
-
-## Candidate Skills
-
-| Method | Endpoint                           | Status                  |
-| ------ | ---------------------------------- | ----------------------- |
-| GET    | `/api/v1/users/me/skills`          | 🟡 Foundation / Partial |
-| POST   | `/api/v1/users/me/skills`          | 🟡 Foundation / Partial |
-| PATCH  | `/api/v1/users/me/skills/:skillId` | 🟡 Foundation / Partial |
-| DELETE | `/api/v1/users/me/skills/:skillId` | 🟡 Foundation / Partial |
-
-## Skills
-
-| Method | Endpoint             | Status                  |
-| ------ | -------------------- | ----------------------- |
-| GET    | `/api/v1/skills`     | ✅ Implemented           |
-| POST   | `/api/v1/skills`     | 🟡 Foundation / Partial |
-| GET    | `/api/v1/skills/:id` | 🟡 Foundation / Partial |
-| PATCH  | `/api/v1/skills/:id` | 🟡 Foundation / Partial |
-| DELETE | `/api/v1/skills/:id` | 🟡 Foundation / Partial |
-
-> This inventory is a contract-review baseline. Individual endpoint status must be verified against the backend implementation before the endpoint is considered fully compliant with the canonical contract.
+For the canonical target contract, intentional architectural decisions documented through the project change process may define the desired future API shape. Such target definitions must remain clearly distinguished from the current backend implementation.
 
 ---
 
-# 52. Known Contract Gaps
+# 52. Document Status
 
-The following areas require verification during the API refactor:
-
-* Current user/candidate resource boundaries
-* Candidate and CandidateSkill endpoint structure
-* Request and response DTO consistency
-* Authentication and authorization behavior
-* Ownership enforcement
-* HTTP status code consistency
-* Error response consistency
-* Pagination conventions
-* Skills CRUD semantics
-* OpenAPI coverage
-* Frontend API client alignment
-* Database-to-domain-to-API mapping
-
-These gaps are not automatically considered defects until the current backend implementation, database model, frontend usage, and documented contract have been compared.
-
----
-
-# 53. API Refactoring Workflow
-
-API refactoring follows a contract-driven workflow.
-
-```text
-Current implementation
-        ↓
-Current API inventory
-        ↓
-Contract gap identification
-        ↓
-Target contract decision
-        ↓
-Backend / Frontend / Documentation implementation
-        ↓
-Contract tests
-        ↓
-Verification
-        ↓
-Legacy cleanup
-```
-
-Work is performed incrementally.
-
-A single ticket should have a clearly defined scope and acceptance criteria.
-
-Future frontend and backend tickets may be executed independently once the relevant contract has been agreed upon.
-
-No implementation ticket should introduce undocumented API behavior.
-
----
-
-# 54. Related Architecture Documentation
-
-This API contract is part of the wider IT Talent Platform architecture.
-
-Related documentation includes:
-
-* `architecture/architecture.md`
-* `architecture/database.md`
-* `architecture/security.md`
-
-These documents describe complementary architectural concerns.
-
-They must remain consistent with this API contract where their content overlaps.
-
-The order in which these documents are reviewed or updated is determined by the active project ticket and is not part of the API contract.
-
----
-
-# 55. Document Status
-
-**Document:** `architecture/api.md`
-
+**Document:** api.md
 **Version:** 0.2.0
-
 **Status:** Canonical API Contract Baseline
-
 **Last updated:** 2026-08-28
 
-This document establishes the canonical baseline for API contract review.
+This document distinguishes the current API implementation from the canonical target API architecture.
 
-It distinguishes between:
+The actual NestJS implementation remains the source of truth for current behavior.
 
-* currently implemented API behavior;
-* partially implemented functionality;
-* planned target architecture.
-
-The document must be kept aligned with the backend implementation, OpenAPI specification, frontend API usage, database/domain model, and automated contract tests.
-
-Changes to the API contract must be traceable to an approved project ticket.
+The canonical target contract defines the intended API direction for future refactoring and must not be interpreted as evidence that a planned endpoint is already implemented.
