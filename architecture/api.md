@@ -848,76 +848,320 @@ PATCH /api/v1/recruiters/me
 Recruiter functionality depends on the Company/Recruiter domain implementation.
 
 ---
-
 # 24. Jobs
 
-**Status:** 🔵 Planned / Roadmap
+**Status:** ✅ Implemented
 
-Target:
+The Jobs domain is currently implemented for authenticated recruiters.
+
+Jobs are scoped to the company assigned to the authenticated recruiter. The client does not provide a `companyId` or `createdByRecruiterId`; these relationships are derived from the authenticated recruiter context.
+
+## Implemented Endpoints
+
+| Method | Endpoint              | Purpose                                                     |
+| ------ | --------------------- | ----------------------------------------------------------- |
+| POST   | `/api/v1/jobs`        | Create a new draft job                                      |
+| GET    | `/api/v1/jobs`        | Get jobs belonging to the authenticated recruiter's company |
+| GET    | `/api/v1/jobs/:jobId` | Get a specific job                                          |
+| PATCH  | `/api/v1/jobs/:jobId` | Update an existing job                                      |
+
+All Jobs endpoints require authentication.
+
+Only recruiters can access the Jobs API.
+
+## Create Job
+
+**Status:** ✅ Implemented
 
 ```text
 POST /api/v1/jobs
+```
+
+The authenticated recruiter must be assigned to a company.
+
+Example request:
+
+```json
+{
+  "title": "Senior React Developer",
+  "description": "We are looking for an experienced React developer.",
+  "location": "Amsterdam",
+  "employmentType": "FULL_TIME",
+  "workMode": "HYBRID",
+  "salaryMin": 5500,
+  "salaryMax": 6500,
+  "currency": "EUR",
+  "requiredSkillIds": [
+    "11111111-1111-4111-8111-111111111111"
+  ],
+  "preferredSkillIds": [
+    "22222222-2222-4222-8222-222222222222"
+  ]
+}
+```
+
+A newly created job always starts with:
+
+```text
+status = DRAFT
+```
+
+The backend automatically assigns:
+
+```text
+companyId
+createdByRecruiterId
+```
+
+from the authenticated recruiter.
+
+The client must not provide these ownership fields.
+
+Validation includes:
+
+* title length;
+* description length;
+* employment type;
+* work mode;
+* salary values;
+* salary range;
+* expiration date;
+* referenced skill IDs;
+* duplicate required skills;
+* duplicate preferred skills;
+* overlap between required and preferred skills.
+
+Expected status codes include:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+```
+
+## Get Jobs
+
+**Status:** ✅ Implemented
+
+```text
 GET /api/v1/jobs
-GET /api/v1/jobs/:id
-PATCH /api/v1/jobs/:id
+```
+
+The endpoint returns jobs belonging to the authenticated recruiter's company.
+
+Jobs are ordered by creation date, newest first.
+
+The response includes job requirements and their associated skills.
+
+A recruiter cannot retrieve jobs belonging to another company.
+
+## Get Job
+
+**Status:** ✅ Implemented
+
+```text
+GET /api/v1/jobs/:jobId
+```
+
+The endpoint returns a job only when the job belongs to the authenticated recruiter's company.
+
+If the job does not exist or belongs to another company:
+
+```text
+404 Not Found
+```
+
+## Update Job
+
+**Status:** ✅ Implemented
+
+```text
+PATCH /api/v1/jobs/:jobId
+```
+
+The endpoint allows the authenticated recruiter to update a job belonging to their company.
+
+The backend validates the resulting salary range when either salary value is changed.
+
+Required and preferred skill arrays can also be supplied to replace the complete job requirement configuration.
+
+The backend validates:
+
+* duplicate skills;
+* required/preferred overlap;
+* referenced skill existence;
+* resulting salary range.
+
+Company ownership is enforced by the backend.
+
+---
+
+# 25. Job Publishing
+
+**Status:** ✅ Implemented
+
+The Jobs API supports publishing draft jobs.
+
+## Publish Job
+
+```text
+POST /api/v1/jobs/:jobId/publish
+```
+
+Only the authenticated recruiter belonging to the job's company can publish the job.
+
+A job can only be published when its current status is:
+
+```text
+DRAFT
+```
+
+When successfully published:
+
+```text
+status = PUBLISHED
+publishedAt = current timestamp
+```
+
+A job that is already published cannot be published again.
+
+Expected status codes include:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+```
+
+The backend is responsible for validating the current job state before publishing.
+
+---
+
+# 26. Job Closing
+
+**Status:** ✅ Implemented
+
+The Jobs API supports closing published jobs.
+
+## Close Job
+
+```text
+POST /api/v1/jobs/:jobId/close
+```
+
+Only the authenticated recruiter belonging to the job's company can close the job.
+
+A job can only be closed when its current status is:
+
+```text
+PUBLISHED
+```
+
+When successfully closed:
+
+```text
+status = CLOSED
+```
+
+A job that is already closed cannot be closed again.
+
+Expected status codes include:
+
+```text
+201 Created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+```
+
+The backend enforces company ownership and job status transitions.
+
+The current Jobs API does not expose a separate job deletion endpoint.
+
+---
+
+# 27. Job Requirements
+
+**Status:** ✅ Implemented
+
+Job Requirements are implemented as a separate domain resource associated with a Job and a Skill.
+
+Each job requirement contains:
+
+```text
+skillId
+required
+minimumLevel
+```
+
+The database also supports an optional `weight` field, although the current Jobs API does not expose weight through the requirement DTOs.
+
+## Implemented Endpoints
+
+| Method | Endpoint                                          | Purpose                        |
+| ------ | ------------------------------------------------- | ------------------------------ |
+| GET    | `/api/v1/jobs/:jobId/requirements`                | Get all requirements for a job |
+| POST   | `/api/v1/jobs/:jobId/requirements`                | Add one requirement            |
+| PATCH  | `/api/v1/jobs/:jobId/requirements/:requirementId` | Update one requirement         |
+| PATCH  | `/api/v1/jobs/:jobId/requirements`                | Replace all requirements       |
+| DELETE | `/api/v1/jobs/:jobId/requirements/:skillId`       | Remove one requirement         |
+
+All requirement operations require authentication and recruiter authorization.
+
+The job must belong to the authenticated recruiter's company.
+
+## Create Job Requirement
+
+**Status:** ✅ Implemented
+
+```text
+POST /api/v1/jobs/:jobId/requirements
 ```
 
 Example:
 
 ```json
 {
-  "title": "Senior React Developer",
-  "description": "We are looking for...",
-  "location": "Amsterdam",
-  "workMode": "HYBRID",
-  "employmentType": "FULL_TIME",
-  "salaryMin": 5500,
-  "salaryMax": 6500,
-  "currency": "EUR"
+  "skillId": "11111111-1111-4111-8111-111111111111",
+  "required": true,
+  "minimumLevel": 4
 }
 ```
 
-The Jobs domain depends on Company and Recruiter relationships.
+Validation includes:
 
----
+* valid UUID for `skillId`;
+* `required` must be boolean;
+* `minimumLevel` must be an integer;
+* `minimumLevel` must be at least `1`;
+* the referenced skill must exist;
+* the skill cannot already be assigned to the job.
 
-# 25. Job Publishing
+## Get Job Requirements
 
-**Status:** 🔵 Planned / Roadmap
-
-Target:
+**Status:** ✅ Implemented
 
 ```text
-POST /api/v1/jobs/:id/publish
+GET /api/v1/jobs/:jobId/requirements
 ```
 
-The backend should validate required information before publishing.
+The endpoint returns all requirements for the specified job.
 
----
+Requirements are returned with their associated Skill records.
 
-# 26. Job Closing
+Required skills are listed before preferred skills.
 
-**Status:** 🔵 Planned / Roadmap
+Within the same requirement type, skills are ordered alphabetically by skill name.
 
-Target:
+## Update Job Requirement
 
-```text
-POST /api/v1/jobs/:id/close
-```
-
-Closed jobs should not appear in normal active job discovery.
-
----
-
-# 27. Job Requirements
-
-**Status:** 🔵 Planned / Roadmap
-
-Target:
+**Status:** ✅ Implemented
 
 ```text
-GET /api/v1/jobs/:id/requirements
-POST /api/v1/jobs/:id/requirements
 PATCH /api/v1/jobs/:jobId/requirements/:requirementId
 ```
 
@@ -925,16 +1169,100 @@ Example:
 
 ```json
 {
-  "skillId": "...",
-  "minimumLevel": 4,
-  "required": true,
-  "weight": 0.3
+  "required": false,
+  "minimumLevel": 3
 }
 ```
 
-This functionality depends on the JobRequirement database model.
+Both fields are optional.
 
----
+The backend validates the updated requirement and ensures that the requirement belongs to the specified job.
+
+## Replace All Job Requirements
+
+**Status:** ✅ Implemented
+
+```text
+PATCH /api/v1/jobs/:jobId/requirements
+```
+
+Example:
+
+```json
+{
+  "requiredSkillIds": [
+    "11111111-1111-4111-8111-111111111111"
+  ],
+  "preferredSkillIds": [
+    "22222222-2222-4222-8222-222222222222"
+  ]
+}
+```
+
+The supplied arrays replace the complete existing requirement configuration.
+
+A skill cannot appear more than once within an array and cannot be both required and preferred.
+
+All referenced skills must exist.
+
+The replacement operation is performed transactionally so that the requirement set is replaced consistently.
+
+## Remove Job Requirement
+
+**Status:** ✅ Implemented
+
+```text
+DELETE /api/v1/jobs/:jobId/requirements/:skillId
+```
+
+The endpoint removes the requirement associated with the specified skill.
+
+If the requirement does not exist:
+
+```text
+404 Not Found
+```
+
+## Job Requirement Ownership
+
+Job requirements are always accessed through their parent Job.
+
+The backend first verifies that the Job belongs to the authenticated recruiter's company.
+
+This prevents a recruiter from reading or modifying requirements belonging to another company's job.
+
+## Job Requirement Model
+
+The current database model is:
+
+```text
+Job
+ │
+ └── JobRequirement
+       │
+       └── Skill
+```
+
+A job cannot contain the same skill more than once because the database enforces:
+
+```text
+unique(jobId, skillId)
+```
+
+The current API therefore supports both:
+
+```text
+required skill
+```
+
+and:
+
+```text
+preferred skill
+```
+
+through the `required` property.
+
 
 # 28. Skills
 
