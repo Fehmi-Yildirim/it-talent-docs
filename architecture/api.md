@@ -700,6 +700,125 @@ Private candidate information must not automatically be exposed.
 
 # 22. Company
 
+**Status:** ✅ Implemented
+
+The Company domain is currently implemented for authenticated recruiters.
+
+## Implemented Endpoints
+
+| Method | Endpoint               | Purpose                                                       |
+| ------ | ---------------------- | ------------------------------------------------------------- |
+| POST   | `/api/v1/companies`    | Create a company and assign it to the authenticated recruiter |
+| GET    | `/api/v1/companies/me` | Get the authenticated recruiter's company                     |
+| PATCH  | `/api/v1/companies/me` | Update the authenticated recruiter's company                  |
+
+## Create Company
+
+**Status:** ✅ Implemented
+
+```text
+POST /api/v1/companies
+```
+
+Authentication is required.
+
+Only authenticated recruiters can create a company.
+
+When a company is created, it is automatically assigned to the authenticated recruiter. The client does not provide the recruiter ID or user ID for this relationship.
+
+A recruiter can be assigned to at most one company. If the recruiter is already assigned to a company, the request is rejected.
+
+Example request:
+
+```json
+{
+  "name": "Example Company",
+  "description": "Company description"
+}
+```
+
+The backend generates a unique slug for the company.
+
+Expected status codes:
+
+```text
+201 Created
+401 Unauthorized
+403 Forbidden
+409 Conflict
+```
+
+## Get My Company
+
+**Status:** ✅ Implemented
+
+```text
+GET /api/v1/companies/me
+```
+
+Authentication is required.
+
+The endpoint returns the company assigned to the authenticated recruiter.
+
+If the authenticated recruiter is not assigned to a company, the backend returns:
+
+```text
+404 Not Found
+```
+
+The company is resolved from the authenticated recruiter context. The client does not provide a `companyId`.
+
+## Update My Company
+
+**Status:** ✅ Implemented
+
+```text
+PATCH /api/v1/companies/me
+```
+
+Authentication is required.
+
+The endpoint allows an authenticated recruiter to update their own company.
+
+Example request:
+
+```json
+{
+  "name": "Updated Company Name",
+  "description": "Updated company description"
+}
+```
+
+The backend derives the company from the authenticated recruiter context. The client does not provide a `companyId`.
+
+## Company Ownership and Isolation
+
+**Status:** ✅ Implemented
+
+Company access is scoped to the authenticated recruiter.
+
+A recruiter can only retrieve and update the company assigned to that recruiter through the `/companies/me` endpoints.
+
+The backend must not rely on client-provided identifiers to determine company ownership.
+
+Ownership isolation is covered by the E2E test suite.
+
+## Company Deletion
+
+**Status:** ✅ Not Implemented by Design
+
+The current API does not expose a Company DELETE endpoint.
+
+The following endpoints are intentionally not available:
+
+```text
+DELETE /api/v1/companies/me
+DELETE /api/v1/companies/:id
+```
+
+Company deletion is therefore outside the current Company API scope.
+
+
 **Status:** 🔵 Planned / Roadmap
 
 Target endpoints:
