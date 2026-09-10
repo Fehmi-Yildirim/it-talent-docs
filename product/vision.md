@@ -1,768 +1,588 @@
 # IT Talent Platform — Product Vision
 
 **Document:** `vision.md`
-**Version:** `0.1.0`
-**Status:** Draft / MVP Product Vision
-**Last updated:** 2026-08-12
+**Version:** `0.2.0`
+**Status:** Product Vision
+**Last updated:** 2026-09-10
 
 ---
 
 # 1. Product Vision
 
-IT Talent is a digital platform that connects:
+IT Talent is a digital platform for the IT labor market that connects IT professionals, job seekers, recruiters, and technology companies.
 
-- IT professionals;
-- IT job seekers;
-- recruiters;
-- technology companies.
+The platform organizes talent and job information around:
 
-The platform focuses on **skills, experience and compatibility** rather than relying exclusively on traditional CV-based recruitment.
+* skills;
+* experience;
+* professional profiles;
+* job requirements;
+* preferences;
+* availability;
+* location;
+* employment conditions;
+* transparent matching.
 
-The long-term goal is to make the recruitment process:
-
-- faster;
-- more transparent;
-- more relevant;
-- more data-driven;
-- easier for candidates;
-- more efficient for recruiters.
+IT Talent helps candidates discover relevant opportunities and helps recruiters and companies find and evaluate suitable IT professionals.
 
 ---
 
-# 2. Problem
+# 2. Product Concept
 
-Traditional IT recruitment often relies heavily on:
+The core of IT Talent consists of three elements:
 
-- CV screening;
-- keyword searches;
-- LinkedIn profiles;
-- manual recruiter interpretation;
-- disconnected recruitment systems;
-- subjective candidate evaluation.
+```text
+Candidate Profile
+       +
+Skills & Experience
+       +
+Job Requirements
+       ↓
+    Matching
+       ↓
+Candidate ↔ Job
+```
 
-This creates several problems.
+The platform combines structured candidate and job information to determine relevant matches.
 
-## Candidates
+A match can consider:
 
-Candidates may be rejected because:
-
-- their CV does not contain the exact keyword;
-- their experience is described differently from the job description;
-- recruiters do not discover them;
-- their actual skills are difficult to evaluate.
-
-## Recruiters
-
-Recruiters often need to:
-
-- read many CVs;
-- compare candidates manually;
-- interpret technical skills;
-- determine whether experience is relevant;
-- contact candidates who turn out not to be a good fit.
-
-## Companies
-
-Companies want:
-
-- better candidates;
-- faster hiring;
-- lower recruitment costs;
-- higher quality matches.
+* matching skills;
+* relevant experience;
+* location;
+* work mode;
+* salary;
+* availability;
+* preferences.
 
 ---
 
-# 3. Product Opportunity
+# 3. Target Users
 
-The IT labor market contains a large amount of structured and semi-structured information:
+IT Talent supports three primary user groups.
+
+## 3.1 Candidates
+
+Candidates can:
+
+* create an account;
+* manage a professional profile;
+* add skills;
+* record experience;
+* manage preferences;
+* discover jobs;
+* view relevant jobs;
+* view matches;
+* express interest in jobs;
+* manage applications.
+
+A candidate can be actively looking for work or open to relevant opportunities.
+
+## 3.2 Recruiters
+
+Recruiters can:
+
+* manage a recruiter profile;
+* belong to a company;
+* create jobs;
+* manage jobs;
+* define job requirements;
+* search candidates;
+* view candidates;
+* view matches;
+* shortlist candidates;
+* manage recruitment activities.
+
+## 3.3 Companies
+
+Companies can:
+
+* manage a company profile;
+* manage recruiters;
+* publish jobs;
+* discover candidates;
+* evaluate suitable candidates;
+* support recruitment activities.
+
+---
+
+# 4. Candidate Profiles
+
+The candidate profile forms the foundation of the talent side of the platform.
+
+A profile can contain:
+
+* personal information;
+* professional title;
+* summary;
+* skills;
+* experience level;
+* work experience;
+* education;
+* location;
+* availability;
+* salary expectations;
+* work preferences;
+* CV;
+* visibility settings.
+
+Skills are an important part of the professional profile.
+
+Candidates can record information such as proficiency and relevant experience for their skills.
+
+---
+
+# 5. Skills
+
+IT Talent uses a structured skill catalog.
+
+A skill can contain:
+
+* name;
+* slug;
+* category;
+* description.
+
+Skill categories can include:
+
+* Programming;
+* Frontend;
+* Backend;
+* Cloud;
+* DevOps;
+* Data;
+* Security;
+* Testing;
+* Architecture;
+* Management.
+
+Candidate skills can contain additional information such as:
+
+* proficiency;
+* years of experience;
+* source.
+
+Candidates can add self-reported skills.
+
+The source of skill information is explicitly recorded.
+
+---
+
+# 6. Jobs
+
+Recruiters can create jobs on behalf of a company.
+
+A job can contain:
+
+* title;
+* description;
+* location;
+* work mode;
+* employment type;
+* salary;
+* required experience;
+* required skills;
+* preferred skills;
+* status;
+* publication information.
+
+Skills can be divided into:
+
+**Required skills**
+
+Skills that are essential for the position.
+
+**Preferred skills**
+
+Skills that are valuable but not essential.
+
+---
+
+# 7. Job Discovery
+
+Candidates can discover and view available jobs.
+
+Job discovery supports:
+
+* job listings;
+* search;
+* filtering;
+* job details;
+* relevant jobs;
+* match information.
+
+Candidates can see how their profile relates to a job.
+
+---
+
+# 8. Matching
+
+Matching is a core function of IT Talent.
+
+The platform compares candidate and job information.
 
 ```text
 Candidate
-    │
-    ├── Skills
-    ├── Experience
-    ├── Location
-    ├── Availability
-    ├── Salary expectations
-    └── Preferences
-
-Job
-    │
-    ├── Required skills
-    ├── Preferred skills
-    ├── Experience
-    ├── Location
-    ├── Salary
-    ├── Work mode
-    └── Employment type
-
-    4. Core Product Concept
-
-The core product concept is:
-
-Skills + Experience + Preferences
-                    │
-                    ▼
-              Matching Engine
-                    │
-                    ▼
-           Candidate ↔ Job
-
-The platform calculates a compatibility score and explains the result.
-
-Example:
-
-Senior React Developer
-        │
-        ▼
-Candidate A
-
-Overall Match: 91%
-
-Skills          95%
-Experience      90%
-Location        100%
-Salary          85%
-Availability    100%
-Preferences      80%
-
-The score should always be accompanied by understandable reasons.
-
-5. Target Users
-
-The platform has three primary user groups.
-
-5.1 IT Professionals
-
-People who already work in IT.
-
-Examples:
-
-software developers;
-DevOps engineers;
-cloud engineers;
-data engineers;
-security specialists;
-QA engineers;
-IT project managers;
-architects.
-
-Their objective is to discover relevant career opportunities without repeatedly tailoring their CV to every job.
-
-6. Job Seekers
-
-The platform also targets people actively looking for work.
-
-They may:
-
-create a profile;
-upload a CV;
-specify skills;
-specify experience;
-define preferences;
-discover relevant jobs;
-receive match recommendations.
-
-The distinction between "IT professional" and "job seeker" is primarily behavioral.
-
-A professional may be:
-
-actively looking
-
-or:
-
-passively open to opportunities
-7. Recruiters
-
-Recruiters use the platform to:
-
-create vacancies;
-define required skills;
-search candidates;
-view candidate matches;
-understand match quality;
-shortlist candidates.
-
-The platform should reduce manual candidate screening.
-
-8. Companies
-
-Companies use the platform to:
-
-manage their company profile;
-create jobs;
-manage recruiters;
-find suitable candidates;
-eventually manage the recruitment pipeline.
-
-Company functionality will initially be centered around recruiters.
-
-9. Primary Value Proposition
-For candidates
-
-Find opportunities that match your real skills, not just your CV keywords.
-
-For recruiters
-
-Find the most relevant IT professionals faster.
-
-For companies
-
-Reduce recruitment time and improve candidate quality.
-
-10. Product Differentiation
-
-The platform should not attempt to become another generic job board.
-
-The primary differentiator is:
-
-Skill-first matching
-
-rather than:
-
-Job listing + keyword search
-
-The platform should eventually understand relationships such as:
-
-React
-TypeScript
-Next.js
-Node.js
-AWS
-
-and recognize that these skills form a meaningful technical profile.
-
-11. MVP Product
-
-The MVP should answer one fundamental question:
-
-Can we create meaningful matches between IT candidates and IT jobs?
-
-The MVP therefore focuses on:
-
-Candidate Profile
-        +
-Skills
-        +
-Job Requirements
-        ↓
-    Matching
-        ↓
-Match Score
-
-Everything that does not directly contribute to validating this proposition should have lower priority.
-
-12. MVP Candidate Experience
-
-A candidate should be able to:
-
-create an account;
-create a professional profile;
-enter skills;
-specify experience;
-specify preferences;
-upload a CV;
-receive relevant job matches;
-inspect why a job matches their profile.
-13. MVP Recruiter Experience
-
-A recruiter should be able to:
-
-create an account;
-create/join a company;
-create a job;
-specify required skills;
-specify preferred skills;
-publish the job;
-see matching candidates;
-inspect match explanations.
-14. MVP Matching Experience
-
-The matching engine should compare:
-
-Candidate
-       │
-       ├── Skills
-       ├── Experience
-       ├── Location
-       ├── Salary
-       ├── Availability
-       └── Preferences
-              │
-              ▼
-             JOB
-
-The output:
-
-Overall Score
-+
-Component Scores
-+
-Strengths
-+
-Potential Gaps
-15. AI Role
-
-AI is an important enabling technology but should not be the product itself.
-
-AI may initially be used for:
-
-CV skill extraction;
-job-description skill extraction;
-skill normalization;
-natural-language explanations.
-
-Example:
-
-CV
- ↓
-AI extraction
- ↓
-"React", "TypeScript", "AWS"
- ↓
-Skill normalization
- ↓
-CandidateSkill records
-
-The core product remains the structured matching system.
-
-16. Why This Matters
-
-This architecture prevents the product from becoming:
-
-"ChatGPT with a recruitment UI."
-
-Instead, the platform becomes:
-
-A structured IT talent marketplace with AI-assisted data processing and matching.
-
-This is an important strategic distinction.
-
-17. Product Principles
-
-The product follows these principles.
-
-17.1 Candidate First
-
-Candidates should understand:
-
-how their profile is used;
-why they match a job;
-what information recruiters can see.
-17.2 Explainability
-
-A match score should not be a mysterious number.
-
-Instead:
-
-91% match
-
-Why?
-
-+ Strong React experience
-+ Strong TypeScript experience
-+ Relevant AWS experience
-+ Salary range overlaps
-
-Potential gap:
-
+   │
+   ├── Skills
+   ├── Experience
+   ├── Location
+   ├── Availability
+   ├── Salary
+   └── Preferences
+           │
+           ▼
+       Matching
+           │
+           ▼
+          Job
+```
+
+Matching can produce:
+
+* overall match;
+* skill match;
+* experience match;
+* location match;
+* salary match;
+* availability match;
+* preference match.
+
+Matching results are supported by understandable information about strengths and gaps.
+
+---
+
+# 9. Match Explanation
+
+IT Talent makes matching understandable.
+
+A match can show:
+
+```text
+Match: 91%
+
+Strong matches
++ React
++ TypeScript
++ AWS
++ Relevant experience
+
+Potential gaps
 - Limited Kubernetes experience
-17.3 Human-in-the-Loop
+```
 
-AI assists humans.
+This gives users insight into why a candidate and job match.
 
-It does not replace:
+---
 
-candidate judgment;
-recruiter judgment;
-hiring decisions.
-18. No Black Box Hiring Decisions
+# 10. Applications
 
-The platform should not make irreversible employment decisions automatically.
+Candidates can participate in the application process through the platform.
 
-For example, the system should not simply say:
+Applications connect:
 
-Candidate rejected.
-
-based exclusively on an AI score.
-
-Instead, the system should provide decision-support information.
-
-19. Transparency
-
-Users should eventually be able to understand:
-
-which skills were detected;
-which skills were matched;
-which requirements were missing;
-how the score was calculated;
-which information is AI-generated.
-20. Candidate Control
-
-Candidates should eventually control:
-
-profile visibility;
-job-seeking status;
-recruiter discoverability;
-CV visibility;
-contact preferences.
-21. Recruiter Efficiency
-
-The recruiter experience should optimize for:
-
-Discover
+```text
+Candidate
     ↓
-Filter
+Job
     ↓
-Match
+Application
+```
+
+An application can contain:
+
+* candidate;
+* job;
+* status;
+* application date;
+* cover letter;
+* recruitment information.
+
+Recruiters can manage applications throughout the recruitment process.
+
+---
+
+# 11. Recruiter Workflow
+
+The recruiter workflow supports:
+
+```text
+Create Job
     ↓
-Understand
+Define Requirements
+    ↓
+Discover Candidates
+    ↓
+View Matches
+    ↓
+Understand Match
     ↓
 Shortlist
     ↓
 Contact
+    ↓
+Manage Application
+```
 
-rather than:
+---
 
-Open CV
-Read CV
-Open LinkedIn
-Search skills
-Compare
-Repeat...
-22. Company Value
+# 12. Company Management
 
-The ultimate business value for companies is not the number of CVs in the system.
+Companies provide the organizational context for recruiters and jobs.
 
-It is:
+A company profile can contain:
 
-Qualified candidates
-        ×
-Relevant opportunities
-        ×
-Speed
+* company name;
+* company information;
+* location;
+* website;
+* recruiters;
+* jobs.
 
-The platform should therefore optimize for match quality, not simply candidate volume.
+Recruiters can manage jobs and candidate discovery within the company context.
 
-23. Marketplace Model
+---
 
-The long-term platform is a two-sided marketplace.
+# 13. Authentication & Roles
 
-        IT Talent Platform
+IT Talent supports the following user roles:
 
-Candidates  ←────────────→  Companies
-IT Pros                      Recruiters
-Job Seekers                  Hiring Teams
+```text
+CANDIDATE
+RECRUITER
+ADMIN
+```
 
-The platform becomes more valuable as both sides grow.
+Each role has access to functions appropriate to that role.
 
-This creates a marketplace challenge:
+Candidates manage their professional information.
 
-The product needs enough relevant candidates and jobs to produce useful matches.
+Recruiters manage recruitment activities within their company context.
 
-24. Initial Market Strategy
+Administrators manage platform users and platform data.
 
-The initial product should avoid trying to cover:
+---
 
-all jobs
-all industries
-all countries
-all professions
+# 14. Administration
 
-Instead, start narrow.
+Administrators can manage platform data and users.
 
-Possible initial niche:
+Administration supports:
 
-IT professionals
-+
-software/technology companies
-+
-Netherlands
+* viewing users;
+* searching users;
+* creating users;
+* updating users;
+* deleting users;
+* managing roles;
+* managing skills.
 
-This makes the matching problem more manageable.
+Administrative functions are protected by role-based access control.
 
-25. Initial Geographic Focus
+---
 
-The architecture should remain internationalizable.
+# 15. Multilingual Platform
 
-However, the MVP may initially focus on the Dutch market.
+IT Talent supports multiple languages in the user interface.
 
-Potential future expansion:
+Current language support:
 
-Netherlands
-   ↓
-Benelux
-   ↓
-Europe
-   ↓
-International
+* **English — default**
+* **Dutch — secondary**
 
-The product should avoid hard-coding Dutch-specific assumptions into the core architecture.
+The multilingual structure allows additional languages to be introduced without changing the core platform functionality.
 
-26. Business Model — Initial Hypothesis
+---
 
-Potential revenue models include:
+# 16. AI-Assisted Capabilities
 
-Recruiter subscription
-Free
-Professional
-Business
-Enterprise
-Employer subscription
+AI can support IT Talent in processing and interpreting information.
 
-Companies pay for:
+Potential applications include:
 
-more jobs;
-more candidate searches;
-advanced matching;
-analytics.
-Recruitment credits
+* CV skill extraction;
+* job description skill extraction;
+* skill normalization;
+* text interpretation;
+* match explanations;
+* profile assistance.
 
-Recruiters purchase:
+AI supports the structured data within the platform.
 
-candidate contact credits
-Premium matching
+Final candidate and recruitment decisions remain with users.
 
-Advanced matching capabilities could become a paid feature.
+---
 
-27. Free Tier
+# 17. Transparency
 
-The platform should have a useful free tier during early adoption.
+IT Talent provides transparency around profile information and matching.
 
-Potential free functionality:
+Users should be able to understand:
 
-Candidates
-profile;
-skills;
-job discovery;
-basic matching.
-Recruiters
-limited jobs;
-limited candidate searches;
-basic matching.
+* registered skills;
+* matched skills;
+* missing skills;
+* relevant experience;
+* match factors;
+* profile information used for matching.
 
-The objective is product adoption rather than immediate monetization.
+A match score is supporting information and is not an automatic hiring decision.
 
-28. Monetization Principle
+---
 
-The product should monetize efficiency and access, not basic candidate identity.
+# 18. Candidate Control
 
-We should avoid creating a model where candidates must pay simply to be discoverable.
+Candidates maintain control over their professional profile.
 
-29. Key Product Metrics
+The platform supports control over:
 
-The MVP should measure:
+* profile information;
+* visibility;
+* availability;
+* job-seeking status;
+* CV;
+* recruiter discoverability;
+* contact preferences.
 
-Candidate metrics
-Registered candidates
-Completed profiles
-CV uploads
-Profiles with skills
-Job matches viewed
-Jobs saved
-Recruiter metrics
-Registered recruiters
-Jobs created
-Jobs published
-Candidates viewed
-Matches viewed
-Candidates shortlisted
-Marketplace metrics
-Candidate ↔ Job matches
-High-quality matches
-Match-to-contact rate
-Contact-to-interview rate
-Interview-to-hire rate
-30. North Star Metric
+---
 
-A potential North Star Metric is:
+# 19. Recruitment Intelligence
 
-Qualified candidate-job interactions per active month.
+The structured data within IT Talent provides a foundation for recruitment intelligence.
 
-A qualified interaction could mean:
+The platform can provide insights into:
 
-Recruiter views a relevant candidate
+* talent availability;
+* skill demand;
+* skill gaps;
+* candidate quality;
+* job quality;
+* matching quality;
+* recruitment activity.
 
-or:
+---
 
-Candidate meaningfully engages with a relevant job
+# 20. Product Principles
 
-The exact metric should be validated after MVP usage data becomes available.
+## 20.1 Skill-first
 
-31. Quality Over Quantity
+Skills are a central part of candidate and job matching.
 
-The platform should avoid optimizing purely for:
+## 20.2 Explainable
 
-number of matches
+Matching results should be understandable.
 
-Instead:
+## 20.3 Candidate Control
 
-relevant matches
+Candidates maintain control over their professional information.
 
-are more valuable.
+## 20.4 Human Decision
 
-100 poor matches are worse than:
+The platform supports human decision-making.
 
-10 highly relevant matches
-32. MVP Success Criteria
+## 20.5 Structured Data
 
-The MVP should be considered promising if early users demonstrate that:
+Candidates, skills, companies, jobs, and applications are structured platform entities.
 
-candidates complete profiles;
-recruiters create real jobs;
-the matching engine produces believable results;
-recruiters prefer ranked candidates over manual searching;
-candidates understand why jobs are recommended;
-users return to the platform.
-33. Product Risks
+## 20.6 Secure
 
-Important risks include:
+Access to data and functionality is controlled through authentication and user roles.
 
-Cold start
+## 20.7 International
 
-Without candidates:
+The platform supports multiple languages and can be expanded internationally.
 
-Recruiters have little value.
+---
 
-Without jobs:
+# 21. Platform Structure
 
-Candidates have little value.
-Matching quality
+The main IT Talent domains are:
 
-Poor matches destroy trust quickly.
-
-AI trust
-
-Incorrect AI-generated skills can damage candidate profiles.
-
-Data quality
-
-Incomplete profiles produce weak matches.
-
-Privacy
-
-Candidate data must be handled carefully.
-
-Competition
-
-The recruitment market contains established platforms and ATS providers.
-
-The product therefore needs a clear differentiator.
-
-34. Competitive Positioning
-
-The platform should not initially attempt to compete with every recruitment platform.
-
-Instead, position around:
-
-IT-specialized
-+
-skills-first
-+
-explainable matching
-+
-AI-assisted
-
-This creates a more focused proposition.
-
-35. Long-Term Vision
-
-The long-term platform could evolve from:
-
-Job Matching
-
-into:
-
-IT Talent Intelligence Platform
-
-Potential capabilities:
-
-Skills graph
-Talent discovery
-Career recommendations
-Skill-gap analysis
-Learning recommendations
-Salary intelligence
-Recruitment analytics
-Talent pools
-Internal mobility
-AI-assisted recruiting
-
-These are future possibilities, not MVP requirements.
-
-36. Product Evolution
-
-Possible evolution:
-
-Phase 1
-Job ↔ Candidate Matching
-
-        ↓
-
-Phase 2
-Talent Discovery
-
-        ↓
-
-Phase 3
-Recruitment Workflow
-
-        ↓
-
-Phase 4
-Talent Intelligence
-
-        ↓
-
-Phase 5
-IT Talent Marketplace
-37. Product Philosophy
-
-The platform should ultimately answer three questions extremely well:
-
-Candidate
-
-"Which jobs are genuinely relevant to me?"
-
-Recruiter
-
-"Which candidates are genuinely relevant to this job?"
-
-Company
-
-"How can we hire the right IT professional faster?"
-
-38. Vision Statement
-
-IT Talent makes IT recruitment more intelligent by connecting people and opportunities through skills, experience and transparent matching.
-
-39. Product Vision Status
-
-Version 0.1.0
-
-This document defines the long-term product direction and MVP philosophy.
-
-Detailed functional requirements are defined separately in:
-
-product/requirements.md
-Hierna
-
-Onze documentatie begint nu echt een samenhangend geheel te vormen:
-
-it-talent-docs/
+```text
+IT Talent
 │
-├── README.md
-│
-├── architecture/
-│   ├── architecture.md       ✅
-│   ├── database.md           ✅
-│   ├── api.md                ✅
-│   └── security.md           ✅
-│
-├── product/
-│   ├── vision.md             ✅
-│   ├── requirements.md       ← VOLGENDE
-│   └── roadmap.md
-│
-└── decisions/
-    └── README.md
+├── Authentication
+├── Users
+├── Candidates
+│   ├── Profile
+│   └── Skills
+├── Skills
+├── Recruiters
+├── Companies
+├── Jobs
+├── Job Discovery
+├── Matching
+├── Applications
+├── Dashboard
+└── Administration
+```
+
+---
+
+# 22. Product Value
+
+For candidates, IT Talent provides:
+
+* a professional IT profile;
+* structured skill management;
+* job discovery;
+* relevant matches;
+* match insights;
+* application support.
+
+For recruiters, IT Talent provides:
+
+* job management;
+* candidate discovery;
+* skill-based matching;
+* match insights;
+* shortlist functionality;
+* application management.
+
+For companies, IT Talent provides:
+
+* company management;
+* recruiter management;
+* job management;
+* candidate discovery;
+* recruitment support;
+* recruitment insights.
+
+---
+
+# 23. Long-Term Product Direction
+
+IT Talent can expand with capabilities such as:
+
+* advanced matching;
+* talent discovery;
+* skills graph;
+* skill-gap analysis;
+* career recommendations;
+* learning recommendations;
+* salary intelligence;
+* talent pools;
+* recruitment analytics;
+* internal mobility;
+* AI-assisted recruiting.
+
+These capabilities build on the platform's candidates, skills, companies, jobs, matching, and applications.
+
+---
+
+# 24. Vision Statement
+
+**IT Talent connects IT professionals and organizations through skills, experience, and professional preferences to make relevant opportunities and recruitment matches more transparent and accessible.**
+
+---
+
+# 25. Document Status
+
+**Version:** 0.2.0
+**Status:** Product Vision
+
+This document defines the product vision, core capabilities, and future direction of IT Talent.
+
+Detailed functional requirements are defined in:
+
+`product/requirements.md`
