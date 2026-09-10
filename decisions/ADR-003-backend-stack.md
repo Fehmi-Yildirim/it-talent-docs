@@ -1,111 +1,163 @@
-
-### `decisions/ADR-003-backend-stack.md`
-
-```md
 # ADR-003 — Backend Technology Stack
 
-**Status:** Accepted  
-**Date:** 2026-08-12  
-**Updated:** 2026-08-13
+**Status:** Accepted
+**Date:** 2026-08-12
+**Updated:** 2026-09-10
 
 ## Context
 
-The backend must provide:
+The IT Talent Platform requires a backend application that provides:
 
-- REST API;
-- authentication;
-- authorization;
-- business logic;
-- matching;
-- AI integration;
-- database access;
-- validation;
-- API documentation.
+* REST API endpoints;
+* authentication;
+* authorization;
+* request validation;
+* business logic;
+* user and role management;
+* skills management;
+* company and job functionality;
+* database access.
 
-The backend must be modular, secure and maintainable.
+The backend is maintained in the separate `it-talent-backend` repository.
 
 ## Decision
 
-The backend will use:
+The backend uses:
 
-- NestJS;
-- TypeScript;
-- Prisma;
-- PostgreSQL.
+* NestJS;
+* TypeScript;
+* Prisma;
+* PostgreSQL.
 
-The backend will expose a versioned REST API.
+The backend exposes a versioned REST API under:
+
+```text
+/api/v1
+```
 
 ## Rationale
 
 ### NestJS
 
-NestJS provides:
+NestJS provides the application structure used by the backend, including:
 
-- modular architecture;
-- dependency injection;
-- guards;
-- middleware;
-- interceptors;
-- decorators;
-- testing support.
+* modular organization;
+* dependency injection;
+* controllers;
+* services;
+* guards;
+* middleware;
+* decorators;
+* request validation;
+* testing support.
 
-This fits the complexity expected from the platform.
+This provides a clear structure for the platform's API and business logic.
 
 ### TypeScript
 
-TypeScript provides static typing throughout the backend and keeps the frontend and backend technology stacks aligned.
+TypeScript is used throughout the backend.
+
+It provides static typing for:
+
+* controllers;
+* services;
+* DTOs;
+* domain types;
+* database access;
+* API logic.
 
 ### Prisma
 
-Prisma provides:
+Prisma is the database access layer between the NestJS application and PostgreSQL.
 
-- type-safe database access;
-- schema management;
-- migrations;
-- strong TypeScript integration.
+It provides:
 
-Prisma will be the primary database access layer.
+* type-safe database access;
+* schema management;
+* migrations;
+* generated TypeScript types;
+* structured relational queries.
 
 ### PostgreSQL
 
-PostgreSQL is selected because the platform requires:
+PostgreSQL is used as the primary database.
 
-- relational data;
-- strong consistency;
-- complex relationships;
-- filtering;
-- transactions;
-- indexing;
-- future analytical capabilities.
+The platform contains relational data such as:
+
+* users;
+* candidates;
+* recruiters;
+* companies;
+* skills;
+* jobs;
+* job requirements;
+* applications.
+
+PostgreSQL provides the relational structure and constraints required to maintain these relationships.
 
 ## Architecture
+
+The current backend request flow is structured around controllers, services, validation, and database access:
 
 ```text
 HTTP Request
      │
      ▼
-Rate Limiting
+NestJS
+     │
+     ├── Authentication
+     │
+     ├── Authorization
+     │
+     ├── Validation
      │
      ▼
-Authentication
+  Controller
      │
      ▼
-Authorization
+   Service
      │
      ▼
-Controller
+   Prisma
      │
      ▼
-Validation
-     │
-     ▼
-Service
-     │
-     ▼
-Domain / Business Logic
-     │
-     ▼
-Prisma
-     │
-     ▼
-PostgreSQL
+ PostgreSQL
+```
+
+Controllers expose the REST API, services contain application logic, and Prisma handles communication with PostgreSQL.
+
+## Security Boundary
+
+The backend is the authoritative application and security boundary.
+
+It is responsible for:
+
+* authenticating users;
+* enforcing roles and permissions;
+* validating incoming data;
+* applying business rules;
+* accessing protected database resources;
+* returning controlled API responses.
+
+The frontend does not access PostgreSQL directly.
+
+## Consequences
+
+### Positive
+
+* Clear separation between API, business logic, and database access.
+* Strong TypeScript integration across the backend.
+* Type-safe database operations through Prisma.
+* Relational data integrity through PostgreSQL.
+* Modular backend structure suitable for the platform's different domains.
+* Versioned REST API boundary between frontend and backend.
+
+### Negative
+
+Frontend functionality that depends on backend API changes requires coordination between the frontend and backend repositories.
+
+## Result
+
+The IT Talent Platform backend is implemented with **NestJS and TypeScript**, using **Prisma** as the database access layer and **PostgreSQL** as the primary relational database.
+
+The backend exposes the platform functionality through the versioned `/api/v1` REST API.
