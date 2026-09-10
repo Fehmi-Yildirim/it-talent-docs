@@ -9,57 +9,57 @@
 
 # 1. Product Vision
 
-IT Talent is a digital platform for the IT labor market that connects IT professionals, job seekers, recruiters, and technology companies.
+IT Talent is a digital platform for the IT labor market that connects candidates and recruiters through professional profiles, skills, jobs, applications, and matching.
 
-The platform organizes talent and job information around:
+The platform organizes information around:
 
+* professional profiles;
 * skills;
 * experience;
-* professional profiles;
 * job requirements;
-* preferences;
-* availability;
 * location;
-* employment conditions;
-* transparent matching.
+* work mode;
+* employment type;
+* salary;
+* availability;
+* preferences;
+* applications.
 
-IT Talent helps candidates discover relevant opportunities and helps recruiters and companies find and evaluate suitable IT professionals.
+IT Talent helps candidates discover relevant IT jobs and helps recruiters manage jobs, discover candidates, and review applications.
 
 ---
 
 # 2. Product Concept
 
-The core of IT Talent consists of three elements:
+The core of IT Talent connects candidate profiles with available jobs.
 
 ```text
 Candidate Profile
        +
 Skills & Experience
        +
-Job Requirements
-       ↓
+Preferences
+       │
+       ▼
     Matching
-       ↓
+       │
+       ▼
 Candidate ↔ Job
 ```
 
-The platform combines structured candidate and job information to determine relevant matches.
-
-A match can consider:
-
-* matching skills;
-* relevant experience;
-* location;
-* work mode;
-* salary;
-* availability;
-* preferences.
+The platform uses structured candidate and job information to provide relevant matching information.
 
 ---
 
-# 3. Target Users
+# 3. User Roles
 
-IT Talent supports three primary user groups.
+IT Talent supports three user roles:
+
+```text
+CANDIDATE
+RECRUITER
+ADMIN
+```
 
 ## 3.1 Candidates
 
@@ -67,159 +67,148 @@ Candidates can:
 
 * create an account;
 * manage a professional profile;
-* add skills;
-* record experience;
-* manage preferences;
-* discover jobs;
-* view relevant jobs;
-* view matches;
-* express interest in jobs;
-* manage applications.
-
-A candidate can be actively looking for work or open to relevant opportunities.
+* add and manage skills;
+* manage professional information;
+* define salary expectations;
+* define availability;
+* define work preferences;
+* search for jobs;
+* filter and sort jobs;
+* view job details;
+* apply for jobs;
+* submit a cover letter;
+* view applications;
+* view application status;
+* withdraw applications where supported.
 
 ## 3.2 Recruiters
 
 Recruiters can:
 
 * manage a recruiter profile;
-* belong to a company;
+* work within a company context;
 * create jobs;
 * manage jobs;
-* define job requirements;
-* search candidates;
+* define job information;
+* define required and preferred skills;
+* publish and manage vacancies;
 * view candidates;
-* view matches;
-* shortlist candidates;
-* manage recruitment activities.
+* view candidate-related information;
+* view applications.
 
-## 3.3 Companies
+## 3.3 Administrators
 
-Companies can:
+Administrators can:
 
-* manage a company profile;
-* manage recruiters;
-* publish jobs;
-* discover candidates;
-* evaluate suitable candidates;
-* support recruitment activities.
+* manage users;
+* manage user information;
+* manage roles;
+* manage skills.
 
 ---
 
 # 4. Candidate Profiles
 
-The candidate profile forms the foundation of the talent side of the platform.
+The candidate profile contains the professional information used throughout the platform.
 
-A profile can contain:
+Profile information includes:
 
-* personal information;
-* professional title;
+* professional headline;
 * summary;
-* skills;
-* experience level;
-* work experience;
-* education;
 * location;
-* availability;
 * salary expectations;
-* work preferences;
-* CV;
-* visibility settings.
+* currency;
+* availability;
+* remote-work preference;
+* skills;
+* professional experience;
+* CV information where available.
 
-Skills are an important part of the professional profile.
-
-Candidates can record information such as proficiency and relevant experience for their skills.
+Candidates can maintain their profile information through the profile experience.
 
 ---
 
 # 5. Skills
 
-IT Talent uses a structured skill catalog.
+Skills are a central part of IT Talent.
 
-A skill can contain:
+The platform supports structured skills for candidates and jobs.
 
-* name;
-* slug;
-* category;
-* description.
+Candidate skill information can include:
 
-Skill categories can include:
-
-* Programming;
-* Frontend;
-* Backend;
-* Cloud;
-* DevOps;
-* Data;
-* Security;
-* Testing;
-* Architecture;
-* Management.
-
-Candidate skills can contain additional information such as:
-
+* skill;
 * proficiency;
-* years of experience;
-* source.
+* years of experience.
 
-Candidates can add self-reported skills.
+Jobs can contain:
 
-The source of skill information is explicitly recorded.
+* required skills;
+* preferred skills.
+
+Skills can also be managed through the administration functionality.
 
 ---
 
 # 6. Jobs
 
-Recruiters can create jobs on behalf of a company.
+Recruiters can create and manage jobs.
 
 A job can contain:
 
 * title;
 * description;
+* company;
 * location;
 * work mode;
 * employment type;
 * salary;
-* required experience;
 * required skills;
 * preferred skills;
-* status;
-* publication information.
+* job status.
 
-Skills can be divided into:
+Supported work modes include:
 
-**Required skills**
-
-Skills that are essential for the position.
-
-**Preferred skills**
-
-Skills that are valuable but not essential.
+* remote;
+* hybrid;
+* onsite;
+* flexible.
 
 ---
 
 # 7. Job Discovery
 
-Candidates can discover and view available jobs.
+Candidates can discover available jobs through the job discovery experience.
 
 Job discovery supports:
 
 * job listings;
-* search;
-* filtering;
-* job details;
-* relevant jobs;
-* match information.
+* keyword search;
+* location filtering;
+* work-mode filtering;
+* employment-type filtering;
+* minimum salary filtering;
+* maximum salary filtering;
+* skill filtering;
+* sorting;
+* pagination;
+* job details.
 
-Candidates can see how their profile relates to a job.
+Candidates can open a job to view its detailed information, including:
+
+* description;
+* company information;
+* location;
+* work mode;
+* employment type;
+* salary;
+* required skills;
+* preferred skills.
 
 ---
 
 # 8. Matching
 
-Matching is a core function of IT Talent.
-
-The platform compares candidate and job information.
+Matching connects candidate information with job information.
 
 ```text
 Candidate
@@ -230,273 +219,190 @@ Candidate
    ├── Availability
    ├── Salary
    └── Preferences
-           │
-           ▼
-       Matching
-           │
-           ▼
-          Job
+          │
+          ▼
+      Matching
+          │
+          ▼
+         Job
 ```
 
-Matching can produce:
+Matching helps identify relevant relationships between candidate profiles and jobs.
 
-* overall match;
-* skill match;
-* experience match;
-* location match;
-* salary match;
-* availability match;
-* preference match.
-
-Matching results are supported by understandable information about strengths and gaps.
+Match information can be used to understand how candidate skills, experience, and preferences relate to job requirements.
 
 ---
 
-# 9. Match Explanation
+# 9. Applications
 
-IT Talent makes matching understandable.
-
-A match can show:
-
-```text
-Match: 91%
-
-Strong matches
-+ React
-+ TypeScript
-+ AWS
-+ Relevant experience
-
-Potential gaps
-- Limited Kubernetes experience
-```
-
-This gives users insight into why a candidate and job match.
-
----
-
-# 10. Applications
-
-Candidates can participate in the application process through the platform.
-
-Applications connect:
+Candidates can apply for jobs through the platform.
 
 ```text
 Candidate
     ↓
-Job
+   Job
     ↓
 Application
 ```
 
-An application can contain:
+An application contains information such as:
 
 * candidate;
 * job;
-* status;
 * application date;
 * cover letter;
-* recruitment information.
+* application status.
 
-Recruiters can manage applications throughout the recruitment process.
+Application statuses include:
+
+* pending;
+* reviewing;
+* accepted;
+* rejected;
+* withdrawn.
+
+Candidates can view their applications and their current status.
+
+Recruiters can view applications associated with their jobs.
 
 ---
 
-# 11. Recruiter Workflow
+# 10. Recruiter Job Management
 
-The recruiter workflow supports:
+The recruiter experience provides job management within the company context.
+
+The workflow includes:
 
 ```text
 Create Job
     ↓
-Define Requirements
+Add Job Information
     ↓
-Discover Candidates
+Add Skills
     ↓
-View Matches
+Publish / Manage Job
     ↓
-Understand Match
+View Candidates
     ↓
-Shortlist
-    ↓
-Contact
-    ↓
-Manage Application
+View Applications
 ```
+
+Recruiters can manage their jobs and review candidates and applications related to their recruitment activities.
 
 ---
 
-# 12. Company Management
+# 11. Company Context
 
-Companies provide the organizational context for recruiters and jobs.
+Jobs are associated with a company.
 
-A company profile can contain:
+The company context provides organizational information for recruiter and job management.
 
-* company name;
+Recruiters can manage jobs within their company context.
+
+---
+
+# 12. Dashboards
+
+IT Talent provides role-specific dashboard experiences.
+
+## Candidate Dashboard
+
+The candidate dashboard provides information such as:
+
+* profile completion;
+* applications;
+* available jobs;
+* recommended jobs;
+* skills;
+* recent applications;
+* recent jobs.
+
+## Recruiter Dashboard
+
+The recruiter dashboard provides information such as:
+
 * company information;
-* location;
-* website;
-* recruiters;
-* jobs.
+* jobs by status;
+* applications;
+* recent candidates;
+* recent jobs.
 
-Recruiters can manage jobs and candidate discovery within the company context.
+## Admin Dashboard
 
----
+The admin experience provides access to platform management functionality, including:
 
-# 13. Authentication & Roles
-
-IT Talent supports the following user roles:
-
-```text
-CANDIDATE
-RECRUITER
-ADMIN
-```
-
-Each role has access to functions appropriate to that role.
-
-Candidates manage their professional information.
-
-Recruiters manage recruitment activities within their company context.
-
-Administrators manage platform users and platform data.
+* user management;
+* skill management.
 
 ---
 
-# 14. Administration
+# 13. Authentication & Access
 
-Administrators can manage platform data and users.
+IT Talent provides authentication and role-based access.
 
-Administration supports:
+The platform supports:
 
-* viewing users;
-* searching users;
-* creating users;
-* updating users;
-* deleting users;
-* managing roles;
-* managing skills.
+* candidate authentication;
+* recruiter authentication;
+* administrator access;
+* role-specific navigation;
+* protected functionality.
 
-Administrative functions are protected by role-based access control.
+Each role receives access to the functionality associated with that role.
 
 ---
 
-# 15. Multilingual Platform
+# 14. Multilingual Platform
 
 IT Talent supports multiple languages in the user interface.
 
-Current language support:
+Current languages are:
 
 * **English — default**
-* **Dutch — secondary**
+* **Dutch**
 
-The multilingual structure allows additional languages to be introduced without changing the core platform functionality.
+The application uses a shared translation system for interface text.
 
----
-
-# 16. AI-Assisted Capabilities
-
-AI can support IT Talent in processing and interpreting information.
-
-Potential applications include:
-
-* CV skill extraction;
-* job description skill extraction;
-* skill normalization;
-* text interpretation;
-* match explanations;
-* profile assistance.
-
-AI supports the structured data within the platform.
-
-Final candidate and recruitment decisions remain with users.
+Users can select the application language through the language functionality.
 
 ---
 
-# 17. Transparency
+# 15. AI-Assisted Functionality
 
-IT Talent provides transparency around profile information and matching.
+AI-assisted functionality supports the processing of candidate and job information.
 
-Users should be able to understand:
+The platform architecture supports AI-assisted processing for structured information such as:
 
-* registered skills;
-* matched skills;
-* missing skills;
-* relevant experience;
-* match factors;
-* profile information used for matching.
+* CV information;
+* skills;
+* job information;
+* matching information.
 
-A match score is supporting information and is not an automatic hiring decision.
+AI-assisted functionality supports the platform data and user experience.
 
 ---
 
-# 18. Candidate Control
+# 16. Administration
 
-Candidates maintain control over their professional profile.
+Administrators can manage platform data through the administration experience.
 
-The platform supports control over:
+Administration includes:
 
-* profile information;
-* visibility;
-* availability;
-* job-seeking status;
-* CV;
-* recruiter discoverability;
-* contact preferences.
+* user management;
+* user search;
+* user creation;
+* user updates;
+* user deletion;
+* role management;
+* skill management.
 
----
-
-# 19. Recruitment Intelligence
-
-The structured data within IT Talent provides a foundation for recruitment intelligence.
-
-The platform can provide insights into:
-
-* talent availability;
-* skill demand;
-* skill gaps;
-* candidate quality;
-* job quality;
-* matching quality;
-* recruitment activity.
+Administrative functionality is protected by role-based access control.
 
 ---
 
-# 20. Product Principles
+# 17. Platform Structure
 
-## 20.1 Skill-first
-
-Skills are a central part of candidate and job matching.
-
-## 20.2 Explainable
-
-Matching results should be understandable.
-
-## 20.3 Candidate Control
-
-Candidates maintain control over their professional information.
-
-## 20.4 Human Decision
-
-The platform supports human decision-making.
-
-## 20.5 Structured Data
-
-Candidates, skills, companies, jobs, and applications are structured platform entities.
-
-## 20.6 Secure
-
-Access to data and functionality is controlled through authentication and user roles.
-
-## 20.7 International
-
-The platform supports multiple languages and can be expanded internationally.
-
----
-
-# 21. Platform Structure
-
-The main IT Talent domains are:
+The main IT Talent platform domains are:
 
 ```text
 IT Talent
@@ -506,9 +412,9 @@ IT Talent
 ├── Candidates
 │   ├── Profile
 │   └── Skills
-├── Skills
 ├── Recruiters
 ├── Companies
+├── Skills
 ├── Jobs
 ├── Job Discovery
 ├── Matching
@@ -519,69 +425,104 @@ IT Talent
 
 ---
 
-# 22. Product Value
+# 18. Product Principles
+
+## 18.1 Skill-oriented
+
+Skills are a central part of candidate profiles, jobs, and matching.
+
+## 18.2 Structured
+
+Candidate, recruiter, company, skill, job, and application information is structured within the platform.
+
+## 18.3 Understandable
+
+Job, candidate, application, and matching information is presented in a clear and structured way.
+
+## 18.4 Role-based
+
+Platform functionality is organized around the Candidate, Recruiter, and Admin roles.
+
+## 18.5 Candidate-focused
+
+Candidates can manage their professional profile, discover jobs, apply, and track their applications.
+
+## 18.6 Recruiter-focused
+
+Recruiters can manage jobs, view candidates, and manage applications within their company context.
+
+## 18.7 Multilingual
+
+The user interface supports English and Dutch.
+
+---
+
+# 19. Product Value
 
 For candidates, IT Talent provides:
 
 * a professional IT profile;
-* structured skill management;
+* skill management;
 * job discovery;
-* relevant matches;
-* match insights;
-* application support.
+* job search and filtering;
+* matching information;
+* job applications;
+* application tracking.
 
 For recruiters, IT Talent provides:
 
+* recruiter and company context;
 * job management;
+* structured job requirements;
 * candidate discovery;
-* skill-based matching;
-* match insights;
-* shortlist functionality;
+* matching information;
 * application management.
 
-For companies, IT Talent provides:
+For administrators, IT Talent provides:
 
-* company management;
-* recruiter management;
-* job management;
-* candidate discovery;
-* recruitment support;
-* recruitment insights.
+* user management;
+* role management;
+* skill management.
 
 ---
 
-# 23. Long-Term Product Direction
+# 20. Current Product Definition
 
-IT Talent can expand with capabilities such as:
+The current IT Talent product is centered on:
 
-* advanced matching;
-* talent discovery;
-* skills graph;
-* skill-gap analysis;
-* career recommendations;
-* learning recommendations;
-* salary intelligence;
-* talent pools;
-* recruitment analytics;
-* internal mobility;
-* AI-assisted recruiting.
+* authentication;
+* candidate profiles;
+* recruiter profiles;
+* skills;
+* companies;
+* jobs;
+* job search;
+* job filtering;
+* job details;
+* matching;
+* applications;
+* role-specific dashboards;
+* user administration;
+* skill administration;
+* English and Dutch language support.
 
-These capabilities build on the platform's candidates, skills, companies, jobs, matching, and applications.
-
----
-
-# 24. Vision Statement
-
-**IT Talent connects IT professionals and organizations through skills, experience, and professional preferences to make relevant opportunities and recruitment matches more transparent and accessible.**
+These capabilities define the current IT Talent product experience.
 
 ---
 
-# 25. Document Status
+# 21. Vision Statement
+
+**IT Talent connects IT professionals and recruiters through professional profiles, skills, jobs, applications, and relevant matching information.**
+
+---
+
+# 22. Document Status
 
 **Version:** 0.2.0
 **Status:** Product Vision
+**Last updated:** 2026-09-10
 
-This document defines the product vision, core capabilities, and future direction of IT Talent.
+This document defines the current product vision and core capabilities of IT Talent.
 
 Detailed functional requirements are defined in:
 

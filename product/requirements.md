@@ -1,1098 +1,695 @@
-T Talent Platform — Product Requirements
+# IT Talent Platform — Product Requirements
 
-Document: requirements.md
-Version: 0.1.0
-Status: Draft / MVP Requirements
-Last updated: 2026-08-12
+**Document:** `requirements.md`
+**Version:** `0.2.0`
+**Status:** Product Requirements
+**Last updated:** 2026-09-10
 
-1. Purpose
+---
 
-This document defines the functional and non-functional requirements for the initial IT Talent Platform MVP.
+# 1. Purpose
 
-The requirements translate the product vision into implementable functionality.
+This document defines the functional requirements of the current IT Talent Platform.
 
-The MVP must validate the core proposition:
+The platform connects candidates and recruiters through:
 
-Can the platform produce useful, explainable matches between IT professionals and IT jobs?
+* professional profiles;
+* skills;
+* jobs;
+* matching information;
+* applications.
 
-2. Scope
+The requirements describe the functionality available through the current application.
 
-The MVP consists of four primary domains:
+---
 
-┌─────────────────────────────────────┐
-│          IT Talent Platform         │
-├─────────────────────────────────────┤
-│                                     │
-│  Candidate Experience               │
-│                                     │
-│  Recruiter Experience               │
-│                                     │
-│  Job Management                     │
-│                                     │
-│  Skill-Based Matching               │
-│                                     │
-└─────────────────────────────────────┘
+# 2. Platform Scope
 
-Supporting domains:
+The IT Talent Platform consists of the following main areas:
 
-authentication;
-company management;
-skill management;
-CV processing;
-AI-assisted extraction;
-security;
-basic administration.
-3. Requirement Priorities
+```text
+IT Talent Platform
+│
+├── Authentication
+├── Candidate
+│   ├── Profile
+│   ├── Skills
+│   ├── Job Discovery
+│   └── Applications
+├── Recruiter
+│   ├── Profile
+│   ├── Company
+│   ├── Jobs
+│   ├── Candidates
+│   └── Applications
+├── Matching
+├── Skills
+├── Dashboard
+└── Administration
+```
 
-Requirements use the following priority model.
+The application also supports multilingual user interface functionality.
 
-Priority	Meaning
-P0	Mandatory for MVP
-P1	Important, but MVP can launch without it
-P2	Future functionality
-P3	Explicitly outside current scope
-4. User Roles
+Current languages:
 
-The MVP supports:
+* English
+* Dutch
 
-CANDIDATE
-RECRUITER
-ADMIN
-5. Candidate Requirements
-CAND-001 — Candidate Registration
+---
 
-Priority: P0
+# 3. User Roles
 
-A candidate must be able to create an account using:
+The platform supports three roles:
 
-email;
-password.
+* `CANDIDATE`
+* `RECRUITER`
+* `ADMIN`
 
-Acceptance criteria:
+Each role has its own navigation and functionality.
 
-valid email required;
-password required;
-duplicate email rejected;
-password stored securely;
-user receives authenticated session after successful registration where appropriate.
-CAND-002 — Candidate Login
+---
 
-Priority: P0
+# 4. Authentication Requirements
 
-A candidate must be able to log in.
+## AUTH-001 — Registration
 
-Acceptance criteria:
+Users must be able to create an account.
 
-valid credentials authenticate successfully;
-invalid credentials return a safe error;
-password is never returned;
-session/token is securely established.
-CAND-003 — Candidate Profile
+Registration requires appropriate account information, including:
 
-Priority: P0
+* email;
+* password;
+* user role where applicable.
 
-A candidate must be able to create and edit a professional profile.
+## AUTH-002 — Login
 
-Minimum profile:
+Users must be able to authenticate using their account credentials.
 
-Name
-Professional headline
-Summary
-Location
-Salary expectation
-Currency
-Availability
-Remote preference
-CAND-004 — Candidate Skills
+Invalid credentials must result in an appropriate error response.
 
-Priority: P0
+## AUTH-003 — Logout
 
-A candidate must be able to add skills.
+Authenticated users must be able to log out.
 
-Each skill may contain:
+## AUTH-004 — Role-Based Access
 
-Skill
-Proficiency
-Years of experience
+The platform must restrict functionality according to the authenticated user's role.
 
-Example:
+Candidates, recruiters, and administrators receive access to their respective platform functionality.
 
-React
-Advanced
-5 years
-CAND-005 — Candidate Skill Editing
+---
 
-Priority: P0
+# 5. Candidate Requirements
 
-Candidates must be able to:
+## CAND-001 — Candidate Profile
 
-add;
-edit;
-remove skills.
+Candidates must be able to manage their professional profile.
 
-Duplicate skills must not be allowed.
+The profile supports information such as:
 
-CAND-006 — Candidate Skill Source
+* professional headline;
+* summary;
+* location;
+* salary expectation;
+* currency;
+* availability;
+* remote-work preference.
 
-Priority: P1
+## CAND-002 — Candidate Skills
 
-The system should distinguish between:
+Candidates must be able to manage their skills.
 
-SELF_REPORTED
-AI_EXTRACTED
-VERIFIED
+Skill information can include:
 
-This is important for future trust and matching quality.
+* skill;
+* proficiency;
+* years of experience.
 
-CAND-007 — Candidate CV Upload
+Candidates can:
 
-Priority: P0
+* add skills;
+* edit skills;
+* remove skills.
 
-A candidate must be able to upload a CV.
+## CAND-003 — Candidate Dashboard
 
-Initial supported format:
+Candidates must have access to a personal dashboard.
 
-PDF
+The dashboard can provide:
 
-Possible future formats:
+* profile completion;
+* application information;
+* available jobs;
+* recommended jobs;
+* skills;
+* recent applications;
+* recent jobs.
 
-DOCX
-TXT
+---
 
-The system must enforce:
+# 6. Job Discovery Requirements
 
-file size limit;
-allowed file type;
-secure storage;
-authorization.
-CAND-008 — CV Processing
+## JOBDISC-001 — Job Listing
 
-Priority: P0
+Candidates must be able to browse available jobs.
 
-After CV upload, the system should process the document.
+The job listing provides relevant job information such as:
 
-Initial flow:
+* job title;
+* location;
+* work mode;
+* employment type;
+* salary;
+* company.
 
-CV
- ↓
-Text extraction
- ↓
-AI analysis
- ↓
-Skill extraction
- ↓
-Skill normalization
- ↓
-Candidate profile suggestion
-CAND-009 — Candidate Confirmation of AI Data
+## JOBDISC-002 — Job Search
 
-Priority: P0
+Candidates must be able to search for jobs.
 
-AI-generated information should not silently overwrite candidate information.
+Search can be based on relevant job information such as:
 
-The candidate should eventually be able to review extracted skills.
+* job title;
+* keywords;
+* location;
+* skills.
 
-Example:
+## JOBDISC-003 — Job Filtering
 
-AI detected:
+Candidates must be able to filter jobs by:
 
-✓ React
-✓ TypeScript
-✓ AWS
-? Kubernetes
+* location;
+* work mode;
+* employment type;
+* skills;
+* minimum salary;
+* maximum salary.
 
-Candidate can:
+Supported work modes include:
 
-Accept
-Reject
-Edit
-CAND-010 — Candidate Job Discovery
+* remote;
+* hybrid;
+* onsite;
+* flexible.
 
-Priority: P0
+## JOBDISC-004 — Job Sorting
 
-Candidates must be able to browse published jobs.
+Candidates must be able to sort available jobs.
 
-Minimum filters:
+## JOBDISC-005 — Job Pagination
 
-location;
-remote mode;
-employment type;
-skill;
-salary where available.
-CAND-011 — Candidate Match Recommendations
+The job listing must support pagination when multiple jobs are available.
 
-Priority: P0
+## JOBDISC-006 — Job Details
 
-Candidates should receive jobs ranked by compatibility.
+Candidates must be able to open a job and view detailed information.
 
-Example:
+Job details include:
 
-Senior React Developer
-91% match
+* title;
+* description;
+* company information;
+* location;
+* work mode;
+* employment type;
+* salary;
+* required skills;
+* preferred skills.
 
-Frontend Engineer
-87% match
+---
 
-Full Stack Developer
-82% match
-CAND-012 — Candidate Match Explanation
+# 7. Application Requirements
 
-Priority: P0
+## APP-001 — Apply for Job
 
-Candidates must be able to understand why a job matches them.
+Candidates must be able to apply for a job.
 
-Example:
+An application can contain:
 
-Strong match:
-+ React
-+ TypeScript
-+ AWS
-+ 5 years experience
+* candidate;
+* job;
+* cover letter;
+* application date;
+* application status.
 
-Potential gap:
-- Kubernetes
-CAND-013 — Candidate Visibility
+## APP-002 — Application List
 
-Priority: P0
+Candidates must be able to view their applications.
 
-Candidates must have control over whether recruiters can discover their profile.
+## APP-003 — Application Details
 
-Initial state:
+Candidates must be able to view details of an individual application.
 
-VISIBLE
-HIDDEN
-CAND-014 — Job-Seeking Status
+## APP-004 — Application Status
 
-Priority: P1
+The platform supports application statuses including:
 
-Candidates should be able to indicate:
+* pending;
+* reviewing;
+* accepted;
+* rejected;
+* withdrawn.
 
-ACTIVELY_LOOKING
-OPEN_TO_OPPORTUNITIES
-NOT_LOOKING
-6. Recruiter Requirements
-REC-001 — Recruiter Registration
+## APP-005 — Withdraw Application
 
-Priority: P0
+Candidates must be able to withdraw an application where the application state allows withdrawal.
 
-Recruiters must be able to create an account.
+## APP-006 — Recruiter Application Overview
 
-REC-002 — Recruiter Profile
+Recruiters must be able to view applications associated with their jobs.
 
-Priority: P0
+---
 
-Recruiters should have:
+# 8. Recruiter Requirements
 
-Name
-Job title
-Company
-REC-003 — Company Creation
+## REC-001 — Recruiter Profile
 
-Priority: P0
+Recruiters must be able to manage their recruiter profile.
 
-A recruiter should be able to create or join a company.
+The recruiter experience includes company-related information.
 
-Minimum company information:
+## REC-002 — Company Context
 
-Company name
-Website
-Description
-Location
-REC-004 — Company Ownership
+Recruiter jobs are associated with a company.
 
-Priority: P0
+The company context is used when managing jobs and recruitment information.
 
-Company resources must be isolated.
-
-A recruiter must only be able to modify resources for companies they are authorized to manage.
-
-REC-005 — Job Creation
-
-Priority: P0
+## REC-003 — Job Creation
 
 Recruiters must be able to create jobs.
 
-Minimum information:
+Job information includes:
 
-Title
-Description
-Location
-Work mode
-Employment type
-Salary range
-Currency
-REC-006 — Job Draft
+* title;
+* description;
+* location;
+* work mode;
+* employment type;
+* salary;
+* required skills;
+* preferred skills.
 
-Priority: P0
+## REC-004 — Job Management
 
-New jobs should initially have:
+Recruiters must be able to manage their jobs.
 
-DRAFT
+Job management includes relevant job states and actions such as:
 
-status.
+* creating a job;
+* editing a job;
+* publishing a job;
+* closing a job.
 
-Recruiters may edit drafts before publishing.
+## REC-005 — Candidate Overview
 
-REC-007 — Job Publishing
+Recruiters must be able to view candidate-related information through the recruiter experience.
 
-Priority: P0
+## REC-006 — Application Overview
 
-Recruiters must be able to publish valid jobs.
+Recruiters must be able to review applications associated with their jobs.
 
-A job cannot be published if mandatory fields are missing.
+---
 
-REC-008 — Job Editing
+# 9. Recruiter Dashboard
 
-Priority: P0
+## REC-DASH-001 — Recruiter Dashboard
 
-Recruiters must be able to edit their jobs.
+Recruiters must have access to a recruiter dashboard.
 
-REC-009 — Job Closing
+The dashboard provides information such as:
 
-Priority: P0
+* company information;
+* jobs by status;
+* applications;
+* recent candidates;
+* recent jobs.
 
-Recruiters must be able to close jobs.
+---
 
-Closed jobs should no longer appear as active opportunities.
+# 10. Job Requirements
 
-7. Job Requirements
-JOB-001 — Required Skills
+## JOB-001 — Job Information
 
-Priority: P0
+A job must support structured information including:
 
-Recruiters must be able to specify required skills.
+* title;
+* description;
+* company;
+* location;
+* work mode;
+* employment type;
+* salary.
 
-Example:
+## JOB-002 — Required Skills
 
-React — Level 4 — Required
-TypeScript — Level 4 — Required
-AWS — Level 3 — Required
-JOB-002 — Preferred Skills
+Jobs must support required skills.
 
-Priority: P0
+## JOB-003 — Preferred Skills
 
-Recruiters must be able to specify preferred skills.
+Jobs must support preferred skills.
 
-Example:
+## JOB-004 — Job Status
 
-Kubernetes — Level 3 — Preferred
-Docker — Level 3 — Preferred
-JOB-003 — Skill Weight
+Jobs must have a status used for job management and presentation.
 
-Priority: P1
+The recruiter can manage the lifecycle of a job through the available job actions.
 
-Recruiters should eventually be able to define the importance of a skill.
+---
 
-Example:
+# 11. Skill Requirements
 
-React       30%
-TypeScript  25%
-AWS         20%
-Node.js     15%
-Docker      10%
-JOB-004 — AI Job Analysis
+## SKILL-001 — Skill Catalog
 
-Priority: P0
+The platform maintains a structured skill catalog.
 
-The system should analyze a job description and suggest:
+Examples include:
 
-skills;
-experience requirements;
-seniority;
-relevant technologies.
+* React;
+* TypeScript;
+* Node.js;
+* Python;
+* Java;
+* AWS;
+* Azure;
+* Kubernetes;
+* PostgreSQL;
+* Docker.
 
-The recruiter must be able to review the suggestions.
+## SKILL-002 — Skill Search
 
-8. Skill Requirements
-SKILL-001 — Skill Catalog
+Users must be able to search for available skills when the functionality requires skill selection.
 
-Priority: P0
+## SKILL-003 — Skill Management
 
-The platform must maintain a normalized skill catalog.
+Administrators must be able to manage skills through the administration experience.
 
-Examples:
+---
 
-React
-TypeScript
-Node.js
-Python
-Java
-AWS
-Azure
-Kubernetes
-PostgreSQL
-Docker
-SKILL-002 — Skill Search
+# 12. Matching Requirements
 
-Priority: P0
+## MATCH-001 — Candidate and Job Matching
 
-Users must be able to search for skills.
+The platform provides matching information between candidates and jobs.
 
-Example:
+Matching uses relevant candidate and job information such as:
 
-rea...
+* skills;
+* experience;
+* location;
+* salary;
+* availability;
+* preferences.
 
-returns:
+## MATCH-002 — Skill Matching
 
-React
-React Native
-SKILL-003 — Skill Normalization
+Candidate skills can be compared with job skill requirements.
 
-Priority: P0
+## MATCH-003 — Match Score
 
-The platform should normalize common variations.
+Matching information can be represented through a compatibility score.
 
-Example:
+The score uses a `0–100` range where applicable.
 
-React.js
-ReactJS
-React JS
+## MATCH-004 — Match Information
 
-should resolve to:
+The platform can present matching information to help users understand the relationship between candidate information and job requirements.
 
-React
-9. Matching Requirements
+## MATCH-005 — Match Ranking
 
-This is the core MVP domain.
+Relevant candidates or jobs can be presented according to matching relevance where supported by the platform.
 
-MATCH-001 — Candidate/Job Matching
+---
 
-Priority: P0
+# 13. Administration Requirements
 
-The backend must calculate a compatibility score between candidates and jobs.
+## ADMIN-001 — Admin Access
 
-MATCH-002 — Skill Matching
+The platform supports an administrative role.
 
-Priority: P0
+## ADMIN-002 — User Management
 
-The matching engine must compare candidate skills with job requirements.
+Administrators must be able to manage users through the administration experience.
 
-Example:
+User management includes relevant user information and role information.
 
-Job requires:
+## ADMIN-003 — Skill Management
 
-React       Level 4
-TypeScript  Level 4
-AWS         Level 3
+Administrators must be able to manage the platform's skills.
 
-Candidate:
+---
 
-React       Level 5
-TypeScript  Level 4
-AWS         Level 4
+# 14. Dashboard Requirements
 
-This should produce a strong skill match.
+The platform provides role-specific dashboards.
 
-MATCH-003 — Required Skill Penalty
+## DASH-001 — Candidate Dashboard
 
-Priority: P0
+The candidate dashboard provides:
 
-Missing required skills must have a stronger impact on the match score than missing preferred skills.
+* profile completion;
+* applications;
+* available jobs;
+* recommended jobs;
+* skills;
+* recent applications;
+* recent jobs.
 
-MATCH-004 — Experience Matching
+## DASH-002 — Recruiter Dashboard
 
-Priority: P0
+The recruiter dashboard provides:
 
-The matching engine should consider relevant professional experience.
+* company information;
+* jobs by status;
+* applications;
+* recent candidates;
+* recent jobs.
 
-MATCH-005 — Location Matching
+## DASH-003 — Admin Dashboard
 
-Priority: P0
+The administration experience provides access to platform management functionality, including:
 
-The engine should consider:
+* user management;
+* skill management.
 
-candidate location;
-job location;
-remote work;
-hybrid work;
-onsite requirements.
-MATCH-006 — Salary Matching
+---
 
-Priority: P0
+# 15. Multilingual Requirements
 
-Where salary information is available, the engine should consider compatibility between:
+## LANG-001 — Supported Languages
 
-Candidate expectation
+The platform supports:
 
-and:
+* English;
+* Dutch.
 
-Job salary range
-MATCH-007 — Availability Matching
+## LANG-002 — Default Language
 
-Priority: P1
+English is the default application language.
 
-The engine should consider candidate availability.
+## LANG-003 — Language Selection
 
-MATCH-008 — Preference Matching
+Users must be able to select the application language through the language functionality.
 
-Priority: P1
+## LANG-004 — Translation System
 
-The engine should eventually consider:
+User-interface text is provided through the application's shared translation system.
 
-remote preference;
-employment type;
-industry;
-company preferences.
-MATCH-009 — Match Score
+The translation system supports language-specific interface content and English fallback behavior.
 
-Priority: P0
+---
 
-The match score must be represented as:
+# 16. User Interface Requirements
 
-0–100
-MATCH-010 — Match Components
+## UI-001 — Role-Based Navigation
 
-Priority: P0
+Navigation must reflect the authenticated user's role.
 
-The score should be decomposable into components.
+## UI-002 — Responsive Interface
 
-Example:
+The application interface must support:
 
-Overall       91
-Skills        95
-Experience    90
-Location     100
-Salary        85
-Availability 100
-Preferences   80
-MATCH-011 — Match Explanation
+* desktop;
+* tablet;
+* mobile.
 
-Priority: P0
+## UI-003 — Consistent Interaction
 
-The system must provide understandable reasons for the score.
+Common actions such as:
 
-MATCH-012 — Match Ranking
+* search;
+* filtering;
+* sorting;
+* viewing details;
+* editing;
+* submitting;
+* withdrawing;
+* publishing;
 
-Priority: P0
+must be presented consistently throughout the application.
 
-Candidates should be rankable by match score.
+---
 
-Example:
+# 17. Security Requirements
 
-1. Candidate A — 94%
-2. Candidate B — 91%
-3. Candidate C — 87%
-10. Recruiter Candidate Discovery
-DISC-001 — Candidate Search
+## SEC-001 — Authentication Protection
 
-Priority: P0
+Protected platform functionality must require authentication.
 
-Recruiters must be able to discover candidates.
+## SEC-002 — Authorization
 
-DISC-002 — Skill Filter
+Users must only be able to access functionality permitted for their role.
 
-Priority: P0
+## SEC-003 — User Data Protection
 
-Recruiters must be able to filter by skill.
+Candidate, recruiter, company, job, and application information must be handled according to the user's authorization level.
 
-DISC-003 — Location Filter
+## SEC-004 — Password Protection
 
-Priority: P0
+Passwords must not be stored or exposed as plain text.
 
-Recruiters must be able to filter by location.
+---
 
-DISC-004 — Experience Filter
+# 18. API Requirements
 
-Priority: P1
+## API-001 — Backend API
 
-Recruiters should be able to filter by experience.
+The frontend communicates with the backend through defined API services.
 
-DISC-005 — Candidate Match Ranking
+## API-002 — Structured Data
 
-Priority: P0
+API responses must provide structured data required by the frontend functionality.
 
-Recruiters should be able to view candidates ranked by match quality for a specific job.
+## API-003 — Error Handling
 
-11. Candidate Privacy Requirements
-PRIV-001 — Profile Visibility
+API errors must be handled in a way that allows the frontend to provide appropriate user feedback.
 
-Priority: P0
+---
 
-Candidates must control whether their profile is discoverable.
+# 19. Core Functional Flows
 
-PRIV-002 — CV Visibility
+## 19.1 Candidate Flow
 
-Priority: P0
-
-A CV must not be publicly accessible.
-
-PRIV-003 — Recruiter Authorization
-
-Priority: P0
-
-Recruiters may only access candidate information they are authorized to see.
-
-PRIV-004 — Data Minimization
-
-Priority: P0
-
-The platform should expose only information required for the current business operation.
-
-12. Authentication Requirements
-AUTH-001 — Registration
-
-Priority: P0
-
-Users can register.
-
-AUTH-002 — Login
-
-Priority: P0
-
-Users can authenticate.
-
-AUTH-003 — Logout
-
-Priority: P0
-
-Users can terminate their session.
-
-AUTH-004 — Password Hashing
-
-Priority: P0
-
-Passwords must use secure hashing.
-
-AUTH-005 — Password Reset
-
-Priority: P1
-
-Users should eventually be able to reset forgotten passwords.
-
-13. Administration
-ADMIN-001 — Admin Role
-
-Priority: P0
-
-The platform must support an administrative role.
-
-ADMIN-002 — Skill Management
-
-Priority: P1
-
-Admins should be able to:
-
-create skills;
-edit skills;
-merge duplicate skills;
-deactivate obsolete skills.
-ADMIN-003 — User Management
-
-Priority: P1
-
-Admins should eventually be able to:
-
-view users;
-suspend users;
-restore users.
-14. Notifications
-
-Notifications are deliberately limited in MVP.
-
-NOTIF-001 — Basic System Notifications
-
-Priority: P1
-
-Potential notifications:
-
-CV processing complete
-New relevant match
-Job published
-
-Email notifications may be postponed.
-
-15. Messaging
-MSG-001 — Recruiter/Candidate Messaging
-
-Priority: P2
-
-Direct messaging is not part of the initial MVP.
-
-Future flow:
-
-Recruiter
-   ↓
-Candidate
-   ↓
-Conversation
-16. Applications
-APP-001 — Job Application
-
-Priority: P2
-
-Traditional applications are outside the first MVP.
-
-The initial product focuses on matching and discovery.
-
-17. Payments
-PAY-001 — Payments
-
-Priority: P3
-
-Payment functionality is explicitly excluded from MVP.
-
-The architecture should remain extensible for future subscriptions.
-
-18. Analytics
-ANA-001 — Basic Product Analytics
-
-Priority: P1
-
-The platform should eventually track anonymized product events.
-
-Examples:
-
-PROFILE_COMPLETED
-JOB_CREATED
-JOB_PUBLISHED
-MATCH_VIEWED
-CANDIDATE_VIEWED
-CV_UPLOADED
-
-Analytics implementation should respect privacy requirements.
-
-19. Non-Functional Requirements
-NFR-001 — Performance
-
-Priority: P0
-
-Normal API requests should generally respond quickly.
-
-Initial target:
-
-Typical API response < 500ms
-
-excluding long-running operations such as:
-
-AI processing;
-CV parsing;
-bulk matching.
-
-This is an initial engineering target, not a contractual SLA.
-
-NFR-002 — Scalability
-
-Priority: P1
-
-The architecture should support future horizontal scaling.
-
-The backend should avoid relying on:
-
-local persistent files;
-process-local state;
-single-server assumptions.
-NFR-003 — Availability
-
-Priority: P1
-
-The production system should target reasonable availability.
-
-Exact SLA will be defined only after production infrastructure is selected.
-
-NFR-004 — Security
-
-Priority: P0
-
-The system must comply with the security architecture defined in:
-
-architecture/security.md
-NFR-005 — Maintainability
-
-Priority: P0
-
-The codebase should use:
-
-TypeScript;
-clear modules;
-automated tests;
-linting;
-formatting;
-documented APIs.
-NFR-006 — Testing
-
-Priority: P0
-
-Core business logic must have automated tests.
-
-Especially:
-
-Authentication
-Authorization
-Matching
-Skill normalization
-Job requirements
-Candidate privacy
-NFR-007 — API Documentation
-
-Priority: P0
-
-The backend should provide OpenAPI/Swagger documentation.
-
-NFR-008 — Observability
-
-Priority: P1
-
-The production system should provide:
-
-structured logs;
-error tracking;
-basic health monitoring.
-NFR-009 — Accessibility
-
-Priority: P1
-
-The frontend should follow modern accessibility principles.
-
-Target:
-
-WCAG 2.1 AA
-
-where reasonably achievable during MVP development.
-
-NFR-010 — Responsive Design
-
-Priority: P0
-
-The application must work on:
-
-desktop;
-tablet;
-mobile.
-
-The primary recruiter experience may be desktop-oriented, but the candidate experience should be strongly mobile-friendly.
-
-20. AI Requirements
-AI-001 — Structured Output
-
-AI integrations must return structured data where possible.
-
-AI-002 — Validation
-
-AI output must be validated before entering the database.
-
-AI-003 — Explainability
-
-AI-generated information should be identifiable.
-
-AI-004 — Human Confirmation
-
-Important AI-generated profile information should be reviewable by the user.
-
-AI-005 — Provider Abstraction
-
-The backend should not tightly couple the domain model to one AI provider.
-
-Conceptually:
-
-AI Service
-    │
-    ├── Provider A
-    ├── Provider B
-    └── Future Provider
-
-This makes provider changes easier.
-
-21. Out of Scope for MVP
-
-The following are explicitly excluded from MVP:
-
-Native mobile applications
-Advanced ATS
-Enterprise SSO
-Advanced billing
-Payments
-Recruitment agency management
-Complex interview scheduling
-Video interviews
-Chat
-Social networking
-Learning platform
-Automated hiring decisions
-Advanced salary intelligence
-International tax/payroll
-
-These may be revisited later.
-
-22. MVP User Journeys
-Candidate Journey
+```text
 Register
    ↓
-Create Profile
+Login
    ↓
-Add Skills
+Manage Profile
    ↓
-Upload CV
+Manage Skills
    ↓
-Review Extracted Skills
+Find Jobs
    ↓
-Browse Jobs
+Filter / Sort
    ↓
-View Match
+View Job
    ↓
-Understand Match
-Recruiter Journey
+Apply
+   ↓
+View Application
+   ↓
+Track Status
+```
+
+## 19.2 Recruiter Flow
+
+```text
 Register
    ↓
-Create Company
+Login
+   ↓
+Manage Recruiter / Company Context
    ↓
 Create Job
    ↓
-Define Skills
+Add Job Information
    ↓
-Publish Job
+Add Required / Preferred Skills
    ↓
-View Matches
+Publish / Manage Job
    ↓
-Inspect Candidates
-23. MVP End-to-End Scenario
+View Candidates
+   ↓
+View Applications
+```
 
-The following scenario represents the core product.
+## 19.3 Administrator Flow
 
-Step 1
+```text
+Login
+   ↓
+Admin Dashboard
+   ↓
+Manage Users
+   ↓
+Manage Skills
+```
 
-Candidate creates:
+---
 
-Senior React Developer
-6 years experience
-Amsterdam
-Hybrid
+# 20. Core Product Scenario
 
-Skills:
+A typical platform interaction connects candidate information with a relevant IT job.
 
-React 5
-TypeScript 5
-Node.js 4
-AWS 3
-Step 2
-
-Recruiter creates:
-
-Senior Frontend Engineer
-Amsterdam
-Hybrid
-
-Requirements:
-
-React 4 — Required
-TypeScript 4 — Required
-AWS 3 — Preferred
-Kubernetes 3 — Preferred
-Step 3
-
-Matching engine calculates:
-
-Overall: 91%
-Step 4
-
-System explains:
-
-Strong matches:
-React
-TypeScript
-AWS
-
-Potential gap:
-Kubernetes
-
-Location:
-Excellent
-
-Salary:
-Compatible
-
-This is the fundamental MVP demonstration.
-
-24. Acceptance Criteria for MVP
-
-The MVP can be considered functionally complete when:
-
+```text
 Candidate
- can register;
- can log in;
- can create profile;
- can add skills;
- can upload CV;
- can review extracted skills;
- can browse jobs;
- can see matches;
- can understand match explanations.
-Recruiter
- can register;
- can create company;
- can create job;
- can define skills;
- can publish job;
- can see candidate matches;
- can inspect match details.
-Platform
- authentication works;
- authorization works;
- company isolation works;
- candidate privacy works;
- skills are normalized;
- matching works;
- AI extraction works;
- API is documented;
- core tests pass.
-25. MVP Definition of Done
+│
+├── Profile
+├── Skills
+├── Experience
+├── Location
+├── Salary
+└── Preferences
+        │
+        ▼
+     Matching
+        │
+        ▼
+       Job
+        │
+        ▼
+    Application
+```
 
-The MVP is ready for controlled testing when:
+The candidate can discover the job, review its details, apply, and track the resulting application.
 
-Frontend
-    ↓
-Backend
-    ↓
-Database
-    ↓
-Authentication
-    ↓
-Candidate
-    ↓
-Recruiter
-    ↓
-Job
-    ↓
-Skills
-    ↓
-Matching
-    ↓
-AI assistance
+The recruiter can manage the job and review associated candidates and applications.
 
-works end-to-end in a deployed environment.
+---
 
-The application must also pass the minimum security and testing requirements.
+# 21. Functional Product Definition
 
-26. Product Requirements Status
+The current IT Talent Platform provides the following core functionality:
 
-Version: 0.1.0
+* user registration and authentication;
+* role-based access;
+* candidate profiles;
+* recruiter profiles;
+* company context;
+* skill management;
+* job creation and management;
+* job search;
+* job filtering;
+* job sorting;
+* job details;
+* candidate/job matching;
+* applications;
+* application status tracking;
+* candidate dashboards;
+* recruiter dashboards;
+* administration;
+* user management;
+* skill management;
+* English and Dutch language support;
+* responsive user interface.
 
-Status: MVP scope defined.
+---
 
-Future changes should be evaluated against:
+# 22. Requirements Status
 
-product vision;
-MVP objective;
-user value;
-implementation cost;
-security/privacy impact.
+**Version:** 0.2.0
+**Status:** Product Requirements
+**Last updated:** 2026-09-10
 
-27. Next Document
+These requirements describe the current IT Talent Platform functionality and user experience.
 
-The next document is:
-
-product/roadmap.md
-
-It will convert these requirements into concrete development phases:
-
-Phase 0 — Repository & tooling
-Phase 1 — Backend foundation
-Phase 2 — Frontend foundation
-Phase 3 — Authentication
-Phase 4 — Candidate
-Phase 5 — Recruiter/company
-Phase 6 — Jobs & skills
-Phase 7 — Matching engine
-Phase 8 — AI/CV processing
-Phase 9 — Integration testing
-Phase 10 — Deployment
-Phase 11 — Closed beta
+Detailed implementation and technical architecture are defined in the corresponding technical documentation.

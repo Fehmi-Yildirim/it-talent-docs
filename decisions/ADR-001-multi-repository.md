@@ -1,75 +1,78 @@
 # ADR-001 — Multi-Repository Architecture
 
-**Status:** Accepted  
-**Date:** 2026-08-12  
-**Updated:** 2026-08-13
+**Status:** Accepted
+**Date:** 2026-08-12
+**Updated:** 2026-09-10
 
 ## Context
 
-The IT Talent Platform consists of three clearly separated concerns:
+The IT Talent Platform consists of three separate concerns:
 
-- frontend application;
-- backend/API application;
-- project documentation.
+* frontend application;
+* backend/API application;
+* project documentation.
 
-The applications and documentation are developed and versioned independently.
+These concerns have different responsibilities and can be developed and versioned independently.
 
 ## Decision
 
-We use three separate GitHub repositories:
+The IT Talent Platform uses three separate GitHub repositories:
 
-- `it-talent-frontend`
-- `it-talent-backend`
-- `it-talent-docs`
+* `it-talent-frontend`
+* `it-talent-backend`
+* `it-talent-docs`
 
-The repositories belong to the same product but remain independently versioned and deployable.
+All three repositories belong to the same IT Talent Platform but remain independently versioned.
+
+The frontend and backend communicate through the REST API. The documentation repository contains the technical and product documentation for the platform.
 
 ## Rationale
 
-This separation provides:
+The multi-repository structure provides a clear separation between:
 
-- independent deployments;
-- clear ownership boundaries;
-- smaller repositories;
-- independent CI/CD pipelines;
-- independent frontend/backend scaling;
-- reduced coupling;
-- clean separation between application code and documentation.
+* frontend development;
+* backend and API development;
+* documentation.
+
+Each repository can therefore maintain its own source structure, dependencies, configuration, and development workflow.
 
 ## Consequences
 
 ### Positive
 
-Frontend and backend can evolve independently.
-
-Documentation does not need to be included in application deployment artifacts.
-
-Each repository can have its own:
-
-- CI pipeline;
-- deployment configuration;
-- release process;
-- permissions.
+* Frontend and backend code remain clearly separated.
+* Documentation is maintained independently from application code.
+* Changes can be versioned per repository.
+* Each application has its own dependency and configuration structure.
+* API communication provides a clear boundary between frontend and backend.
 
 ### Negative
 
-Cross-repository changes require coordination.
+Changes that affect both frontend and backend may require updates in multiple repositories.
 
-For example, an API change may require changes in both:
+For example, an API contract change can require corresponding changes in both:
 
-`it-talent-backend`
+```text
+it-talent-backend
+it-talent-frontend
+```
 
-and:
-
-`it-talent-frontend`
-
-This will be managed through versioned REST API contracts and coordinated changes.
+The API documentation in `it-talent-docs` should remain aligned with the implemented API.
 
 ## Rejected Alternative
 
-A single monorepo containing:
+A single repository containing frontend, backend, and documentation was not selected.
+
+The project uses separate repositories to maintain clear boundaries between application code and documentation, and between frontend and backend development.
+
+## Result
+
+The IT Talent Platform is maintained as three coordinated but independently versioned repositories:
 
 ```text
-frontend/
-backend/
-docs/
+IT Talent Platform
+│
+├── it-talent-frontend
+├── it-talent-backend
+└── it-talent-docs
+```

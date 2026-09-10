@@ -1,195 +1,147 @@
 # IT Talent Platform — Database Architecture
 
-**Document:** database.md  
-**Version:** 0.1.1  
-**Status:** Draft / Database Architecture Baseline  
-**Last updated:** 2026-08-18
+**Document:** `database.md`
+**Version:** `0.2.0`
+**Status:** Current Database Architecture
+**Last updated:** 2026-09-10
 
 ---
 
 # 1. Purpose
 
-This document defines the database architecture for the IT Talent Platform.
+This document defines the current database architecture of the IT Talent Platform.
 
 The database uses:
 
-- PostgreSQL as the primary relational database;
-- Prisma ORM for database access;
-- UUIDs as primary identifiers where defined by the implementation;
-- relational integrity through foreign keys;
-- indexes for frequently queried fields;
-- timestamps for auditable entities.
+* PostgreSQL as the relational database;
+* Prisma ORM for database access;
+* UUIDs as primary identifiers;
+* foreign-key relationships for relational integrity;
+* indexes for frequently queried fields;
+* timestamps on persisted entities.
 
-The database is designed around a skills-first recruitment model.
+The Prisma schema is the authoritative source for the implemented database model.
 
-This document distinguishes between:
-
-1. the current Prisma/database implementation;
-2. domain foundations already present in the database;
-3. planned database structures required by future functionality.
-
-The presence of a conceptual entity in this document does not necessarily mean that the corresponding application functionality or API has already been implemented.
-
----
-
-# 2. Implementation Status
-
-The following status model is used throughout this document.
-
-| Status | Meaning |
-|---|---|
-| ✅ Implemented | Currently represented in the active Prisma/database implementation |
-| 🟡 Foundation / Partial | Database/domain foundation exists, but complete functionality is not implemented |
-| 🔵 Planned / Roadmap | Target architecture only; not currently implemented |
-
-The Prisma schema in:
+Schema location:
 
 ```text
 it-talent-backend/prisma/schema.prisma
+```
 
-3. Database Principles
+---
 
-The database should follow these principles:
+# 2. Database Technology
 
-Normalize core business data.
-Avoid storing derived information unnecessarily.
-Keep business relationships explicit.
-Use foreign keys for relational integrity.
-Use indexes based on actual query patterns.
-Keep AI-generated information distinguishable from verified information.
-Minimize personal data.
-Avoid storing large binary files directly in PostgreSQL.
-Use UTC for persisted timestamps.
-Keep soft deletion available where business/legal requirements require it.
-Keep database concerns separate from business logic.
-Do not move the complete matching algorithm into SQL.
-4. Current Database Scope
+| Area              | Technology                         |
+| ----------------- | ---------------------------------- |
+| Database          | PostgreSQL                         |
+| ORM               | Prisma                             |
+| Identifier type   | UUID                               |
+| Database access   | Backend application through Prisma |
+| Schema definition | `prisma/schema.prisma`             |
+| Migration system  | Prisma Migrate                     |
 
-The current implementation is focused on the initial platform foundation.
+The backend does not expose the database directly to the frontend.
 
-Current implemented database/domain areas include:
+---
 
+# 3. Current Entity Model
+
+The current Prisma schema contains the following entities:
+
+* User
+* Candidate
+* Recruiter
+* Company
+* Job
+* Skill
+* CandidateSkill
+* JobRequirement
+* Match
+* Application
+
+The main relationships are:
+
+```text
 User
-Skill
-Candidate foundation
-Authentication-related data
-
-The target architecture additionally includes:
+ ├── Candidate
+ │    ├── CandidateSkill ── Skill
+ │    ├── Match ────────── Job
+ │    └── Application ──── Job
+ │
+ └── Recruiter
+      ├── Company
+      └── Job
 
 Company
-Recruiter
-Job
-CandidateSkill
-JobRequirement
-Match
+ └── Job
+      ├── JobRequirement ── Skill
+      ├── Match ────────── Candidate
+      └── Application ──── Candidate
+```
 
-These additional entities are part of the target domain model and should not automatically be considered implemented merely because they are described in this document.
+These relationships are implemented in the Prisma schema.
 
-5. High-Level Target Entity Model
+---
 
-The target domain model is:
+# 4. UUID Strategy
 
-User
- │
- ├───────────────┐
- │               │
- ▼               ▼
-Candidate      Recruiter
- │               │
- │               ▼
- │            Company
- │               │
- │               ▼
- │              Job
- │               │
- │               ▼
- │        JobRequirement
- │               │
- ▼               ▼
-CandidateSkill ── Skill
- │
- ▼
-Match
- │
- ▼
-Job
-
-This is the target domain architecture.
-
-The current implementation does not yet expose all relationships represented above.
-
-6. Core Tables
-6.1 Current / Foundation
-
-The current database implementation contains the initial authentication/user and skills foundation.
-
-Relevant domain concepts include:
-
-User
-Skill
-Candidate
-
-Candidate functionality is currently partial and connected to the authenticated user/profile flow.
-
-6.2 Planned
-
-The following tables/entities belong to the target recruitment model:
-
-companies
-recruiters
-jobs
-candidate_skills
-job_requirements
-matches
-
-Additional tables will be introduced only when the corresponding functionality is implemented.
-
-7. UUID Strategy
-
-Primary identifiers use UUIDs where defined by the Prisma implementation.
+Primary identifiers use UUIDs.
 
 Example:
 
+```text
 550e8400-e29b-41d4-a716-446655440000
+```
 
-Advantages include:
+The Prisma schema defines UUID generation for the primary identifiers:
 
-globally unique identifiers;
-suitability for distributed systems;
-reduced exposure of sequential record counts;
-suitability for future integrations.
+```prisma
+id String @id @default(uuid()) @db.Uuid
+```
 
-The actual Prisma schema is authoritative regarding the identifier type and generation strategy.
+UUIDs provide globally unique identifiers and are used consistently across the main domain entities.
 
-8. Timestamp Strategy
+---
 
-Entities should use:
+# 5. Timestamp Strategy
 
+Persisted entities use timestamps where applicable:
+
+```text
 createdAt
 updatedAt
+```
 
-where applicable.
+The database uses:
 
-Persisted timestamps should use UTC.
+```text
+createdAt → @default(now())
+updatedAt → @updatedAt
+```
 
-Example:
+Some domain entities also contain additional dates such as:
 
-2026-08-18T08:00:00Z
+```text
+availabilityDate
+publishedAt
+expiresAt
+calculatedAt
+```
 
-The frontend is responsible for displaying timestamps in the user's local timezone where appropriate.
+The exact fields are defined by the Prisma schema.
 
-The actual presence of timestamp fields is determined by the Prisma schema.
+---
 
-9. User
+# 6. User
 
-Status: ✅ Implemented
+**Status:** Implemented
 
-The User entity represents authentication and common identity information.
+The `User` entity represents authentication identity and platform role information.
 
-Conceptually:
-
+```text
 users
-────────────────────────────
+
 id
 email
 passwordHash
@@ -197,95 +149,48 @@ role
 status
 createdAt
 updatedAt
+```
 
-The actual fields and enum values are defined by:
+Properties:
 
-it-talent-backend/prisma/schema.prisma
+* `id` — UUID primary key
+* `email` — unique email address
+* `passwordHash` — stored password hash
+* `role` — platform role
+* `status` — account status
+* `createdAt`
+* `updatedAt`
 
-The current implementation supports the initial authentication and authorization foundation.
+Roles:
 
-Possible roles in the platform domain include:
-
+```text
 CANDIDATE
 RECRUITER
 ADMIN
+```
 
-Account status is part of the authentication lifecycle.
+Account statuses:
 
-The exact values must always match the Prisma implementation.
+```text
+ACTIVE
+PENDING
+SUSPENDED
+DELETED
+```
 
-10. Company
+A user can have one Candidate profile or one Recruiter profile.
 
-Status: 🔵 Planned / Roadmap
+---
 
-A company represents an organization using the platform.
+# 7. Candidate
 
-Target model:
+**Status:** Implemented
 
-companies
-────────────────────────────
-id
-name
-slug
-website
-description
-location
-createdAt
-updatedAt
+The `Candidate` entity connects a user account with professional profile information.
 
-Potential relationships:
-
-Company
-   │
-   ├── Recruiter
-   │
-   └── Job
-
-Company functionality is not currently implemented as a complete application domain.
-
-11. Recruiter
-
-Status: 🔵 Planned / Roadmap
-
-A recruiter connects a User to a Company.
-
-Target model:
-
-recruiters
-────────────────────────────
-id
-userId
-companyId
-jobTitle
-createdAt
-updatedAt
-
-Target relationships:
-
-User
- │
- └── Recruiter
-       │
-       └── Company
-
-Target constraints:
-
-one user should have at most one recruiter profile in the MVP;
-a recruiter belongs to one company;
-a company can have many recruiters.
-
-These constraints will be finalized when recruiter functionality is implemented.
-
-12. Candidate
-
-Status: 🟡 Foundation / Partial
-
-A Candidate connects a User to professional profile data.
-
-Target model:
-
+```text
 candidates
-────────────────────────────
+
 id
 userId
 headline
@@ -298,53 +203,105 @@ availabilityDate
 remotePreference
 createdAt
 updatedAt
+```
 
-The current implementation provides the initial candidate-profile foundation.
+The relationship between `User` and `Candidate` is one-to-one:
 
-The complete target Candidate model is not yet implemented.
+```text
+User
+ │
+ └── Candidate
+```
 
-Future candidate information may include:
+`userId` is unique, ensuring that a user has at most one Candidate record.
 
-professional title;
-summary;
-location;
-work preferences;
-salary preferences;
-availability;
-work experience;
-education;
-certifications;
-skills;
-CV metadata.
+A Candidate is also related to:
 
-Skills should remain separated from general profile data.
+* CandidateSkill
+* Match
+* Application.
 
-13. Candidate Privacy
+---
 
-Status: 🔵 Planned / Architecture Requirement
+# 8. Recruiter
 
-Candidate visibility is an important architectural concern.
+**Status:** Implemented
 
-The target model may distinguish:
+The `Recruiter` entity connects a user account with recruiter-specific information.
 
-PUBLIC
-RECRUITER_VISIBLE
-PRIVATE
+```text
+recruiters
 
-The exact visibility model will be finalized when recruiter/candidate discovery functionality is implemented.
+id
+userId
+companyId
+jobTitle
+createdAt
+updatedAt
+```
 
-The backend must never return candidate information that the authenticated user is not authorized to view.
+Relationships:
 
-14. Jobs
+```text
+User
+ │
+ └── Recruiter
+       │
+       ├── Company
+       │
+       └── Jobs
+```
 
-Status: 🔵 Planned / Roadmap
+`userId` is unique.
 
-The jobs entity represents vacancies.
+A recruiter can be associated with a company through `companyId`.
 
-Target model:
+`companyId` is indexed for efficient company-based queries.
 
+---
+
+# 9. Company
+
+**Status:** Implemented
+
+The `Company` entity represents an organization using the platform.
+
+```text
+companies
+
+id
+name
+slug
+website
+description
+location
+createdAt
+updatedAt
+```
+
+Relationships:
+
+```text
+Company
+ ├── Recruiters
+ └── Jobs
+```
+
+The company `slug` is unique.
+
+A company can have multiple recruiters and multiple jobs.
+
+---
+
+# 10. Job
+
+**Status:** Implemented
+
+The `Job` entity represents a vacancy published through the platform.
+
+```text
 jobs
-────────────────────────────
+
 id
 companyId
 createdByRecruiterId
@@ -361,63 +318,68 @@ publishedAt
 expiresAt
 createdAt
 updatedAt
+```
 
-Potential statuses:
+Relationships:
 
-DRAFT
-PUBLISHED
-PAUSED
-CLOSED
-ARCHIVED
+```text
+Company
+ │
+ └── Job
+      │
+      ├── JobRequirement
+      ├── Match
+      └── Application
 
-Potential employment types:
+Recruiter
+ │
+ └── Job
+```
 
+A job belongs to one company and has one creating recruiter.
+
+Employment types:
+
+```text
 FULL_TIME
 PART_TIME
 CONTRACT
 FREELANCE
 INTERNSHIP
+```
 
-Potential work modes:
+Work modes:
 
+```text
 REMOTE
 HYBRID
 ONSITE
 FLEXIBLE
+```
 
-These values are target-domain definitions and must be finalized during implementation.
+Job statuses:
 
-15. Job Relationships
+```text
+DRAFT
+PUBLISHED
+PAUSED
+CLOSED
+ARCHIVED
+```
 
-The target model is:
+Indexes are defined for company, status, publication/expiry combinations, and creation date.
 
-Company
-   │
-   └── Job
-        │
-        └── createdBy → Recruiter
+---
 
-A job belongs to:
+# 11. Skill
 
-one company;
-one recruiter who created it.
+**Status:** Implemented
 
-A company can have many jobs.
+Skills are a central part of the platform's candidate and job data model.
 
-A recruiter can create many jobs.
-
-This relationship is planned and is not currently exposed through a complete Jobs API.
-
-16. Skill
-
-Status: ✅ Implemented
-
-Skills are central to the platform.
-
-Conceptually:
-
+```text
 skills
-────────────────────────────
+
 id
 name
 slug
@@ -425,23 +387,18 @@ category
 description
 createdAt
 updatedAt
+```
 
-Example:
+The `slug` is unique.
 
-name: React
-slug: react
-category: FRONTEND
+Skills are connected to:
 
-The current backend provides Skills functionality.
+* CandidateSkill
+* JobRequirement.
 
-The actual fields, constraints and enum values are defined by the Prisma schema.
+Skill categories currently defined in Prisma are:
 
-17. Skill Categories
-
-Status: 🟡 Foundation / Partial
-
-The target architecture may use categories such as:
-
+```text
 FRONTEND
 BACKEND
 FULLSTACK
@@ -456,51 +413,19 @@ TESTING
 PROJECT_MANAGEMENT
 DESIGN
 OTHER
+```
 
-These categories should remain extensible.
+---
 
-Only categories actually defined in the current Prisma implementation should be considered active.
+# 12. CandidateSkill
 
-18. Skill Aliases
+**Status:** Implemented
 
-Status: 🔵 Planned / Roadmap
+`CandidateSkill` represents the relationship between a candidate and a skill.
 
-Technical skills often have multiple representations.
-
-Example:
-
-React
- ├── React.js
- └── ReactJS
-
-
-PostgreSQL
- └── Postgres
-
-
-JavaScript
- └── JS
-
-The platform should eventually normalize equivalent representations.
-
-For the initial implementation, application-level normalization may be sufficient.
-
-A dedicated:
-
-skill_aliases
-
-table may be introduced when the vocabulary becomes large enough to justify it.
-
-19. CandidateSkill
-
-Status: 🔵 Planned / Roadmap
-
-CandidateSkill represents a many-to-many relationship between candidates and skills.
-
-Target model:
-
+```text
 candidate_skills
-────────────────────────────
+
 id
 candidateId
 skillId
@@ -511,85 +436,76 @@ confidence
 verified
 createdAt
 updatedAt
+```
 
-Relationships:
+Relationship:
 
+```text
 Candidate
     │
-    └── CandidateSkill ─── Skill
+    └── CandidateSkill ── Skill
+```
 
-The current implementation does not yet provide the complete CandidateSkill domain/API described here.
+The combination of:
 
-20. Candidate Skill Proficiency
+```text
+candidateId + skillId
+```
 
-Status: 🔵 Planned / Product Definition
+is unique, preventing duplicate candidate-skill relationships.
 
-The target MVP may use a numerical proficiency model:
+Indexes exist for both candidate and skill.
 
-1 = Beginner
-2 = Basic
-3 = Intermediate
-4 = Advanced
-5 = Expert
+---
 
-This should be treated as a product-level abstraction, not as an objective industry certification.
+# 13. Candidate Skill Source
 
-The UI should explain what the levels mean.
+Candidate skills contain a `source` field.
 
-The exact representation must be finalized before CandidateSkill is implemented.
+Current values are:
 
-21. Candidate Skill Source
-
-Status: 🔵 Planned / Roadmap
-
-A skill may eventually originate from:
-
+```text
 SELF_REPORTED
 CV
 AI_EXTRACTED
 ASSESSMENT
 VERIFIED
 RECRUITER_CONFIRMED
+```
 
-This allows the platform to distinguish between:
+This allows the database to retain the origin of candidate skill information.
 
-The candidate says they know Kubernetes.
+The `confidence` field can store an additional confidence value where applicable.
 
-and:
+The `verified` field indicates whether the skill has been verified.
 
-The candidate passed a Kubernetes assessment.
+---
 
-The exact enum will be finalized during implementation.
+# 14. Candidate Skill Proficiency
 
-22. Candidate Skill Confidence
+`CandidateSkill` contains:
 
-Status: 🔵 Planned / Roadmap
+```text
+proficiencyLevel
+```
 
-AI-extracted skills may contain a confidence score.
+The database stores this value as an integer.
 
-Example:
+The current Prisma schema does not define a separate proficiency enum.
 
-skill: React
-confidence: 0.94
+Therefore, the database architecture treats the field as an integer rather than introducing additional database-level proficiency categories.
 
-The range is:
+---
 
-0.0 → 1.0
+# 15. JobRequirement
 
-This represents AI extraction confidence, not candidate proficiency.
+**Status:** Implemented
 
-These are separate concepts.
+`JobRequirement` connects a job with a required or preferred skill.
 
-23. JobRequirement
-
-Status: 🔵 Planned / Roadmap
-
-Job requirements connect jobs to skills.
-
-Target model:
-
+```text
 job_requirements
-────────────────────────────
+
 id
 jobId
 skillId
@@ -598,42 +514,67 @@ required
 weight
 createdAt
 updatedAt
+```
+
+Relationship:
+
+```text
+Job
+ │
+ └── JobRequirement ── Skill
+```
+
+The combination of:
+
+```text
+jobId + skillId
+```
+
+is unique.
+
+This prevents the same skill from being added multiple times to one job.
+
+Indexes exist for both job and skill.
+
+---
+
+# 16. Required and Preferred Skills
+
+A job requirement contains:
+
+```text
+required
+```
+
+This Boolean value distinguishes required skills from non-required skills.
 
 Example:
 
-React
-minimumLevel: 4
-required: true
-weight: 0.30
+```text
+required = true
+```
 
-The complete entity will be implemented together with Jobs and the matching domain.
+means the skill is required.
 
-24. Required vs Preferred Skills
+```text
+required = false
+```
 
-Status: 🔵 Planned / Product Definition
+means the skill is not marked as required.
 
-A job requirement can eventually be classified as:
+`minimumLevel` and `weight` provide additional information for job-skill matching.
 
-REQUIRED
+---
 
-or:
+# 17. Match
 
-PREFERRED
+**Status:** Implemented
 
-A candidate missing a preferred skill should not necessarily be penalized as strongly as a candidate missing a required skill.
+The `Match` entity stores calculated compatibility information between a candidate and a job.
 
-The exact representation must be finalized in the JobRequirement implementation.
-
-25. Match
-
-Status: 🔵 Planned / Roadmap
-
-The matches entity will store calculated candidate/job compatibility.
-
-Target model:
-
+```text
 matches
-────────────────────────────
+
 id
 candidateId
 jobId
@@ -648,537 +589,624 @@ explanation
 calculatedAt
 createdAt
 updatedAt
+```
 
-Conceptually:
+Relationship:
 
+```text
 Candidate
-     │
-     └──────── Match ──────── Job
+    │
+    └── Match ── Job
+```
 
-The current implementation does not contain the complete matching engine or Match application functionality.
+The combination of:
 
-26. Match Scores
+```text
+candidateId + jobId
+```
 
-Status: 🔵 Planned / Roadmap
+is unique.
 
-The target scoring model uses a consistent scale:
+This ensures one stored Match record per candidate-job pair.
 
-0 → 100
+Indexes exist for candidate, job, and overall score.
 
-Example:
+---
 
-overallScore:       91
-skillScore:         95
-experienceScore:    90
-locationScore:     100
-salaryScore:        85
-availabilityScore: 100
-preferenceScore:    80
+# 18. Match Scores
 
-The exact calculation belongs to backend application logic.
+The database stores an overall score and optional component scores:
 
-The database should store results, not contain the complete matching algorithm.
+```text
+overallScore
+skillScore
+experienceScore
+locationScore
+salaryScore
+availabilityScore
+preferenceScore
+```
 
-27. Match Explanation
+The calculation itself belongs to backend application logic.
 
-Status: 🔵 Planned / Roadmap
+The database stores the resulting match data rather than implementing the matching algorithm inside PostgreSQL.
 
-The platform should eventually store structured match explanation data rather than only an unstructured text blob.
+---
 
-Potential structure:
+# 19. Match Explanation
 
-strengths:
-- React
-- TypeScript
-- AWS
+The `Match` entity contains:
 
+```text
+explanation Json?
+```
 
-gaps:
-- Kubernetes
+This allows structured match explanation data to be stored alongside the calculated scores.
 
+The JSON field provides flexibility for the match explanation structure without introducing additional relational tables.
 
-notes:
-- Salary range overlaps
-- Candidate available within required period
+---
 
-The exact PostgreSQL/Prisma representation will be determined when the matching functionality is implemented.
+# 20. Application
 
-28. Match Lifecycle
+**Status:** Implemented
 
-Status: 🔵 Planned / Roadmap
+The `Application` entity represents a candidate application for a job.
 
-A match may eventually have a lifecycle such as:
+```text
+applications
 
-CALCULATED
-VIEWED
-SHORTLISTED
-REJECTED
-CONTACTED
-HIRED
-
-Some of these states belong to the future recruitment/application workflow.
-
-The initial Match implementation may store only the calculated result.
-
-29. CV Metadata
-
-Status: 🔵 Planned / Roadmap
-
-CV files should not be stored directly in PostgreSQL.
-
-A future candidate_documents table may store metadata:
-
-candidate_documents
-────────────────────────────
 id
+jobId
 candidateId
-fileName
-mimeType
-storageKey
-fileSize
-uploadedAt
-processedAt
+coverLetter
 status
+createdAt
+updatedAt
+```
 
-The actual file will reside in object storage.
+Relationships:
 
-Potential processing statuses:
+```text
+Candidate
+    │
+    └── Application ── Job
+```
 
-UPLOADED
-PROCESSING
-PROCESSED
-FAILED
+The combination of:
 
-This table should only be introduced when CV upload functionality is implemented.
+```text
+candidateId + jobId
+```
 
-30. Soft Deletion
+is unique.
 
-Status: 🟡 Architecture Requirement
+This prevents a candidate from creating duplicate applications for the same job.
 
-Not every entity should necessarily be physically deleted immediately.
+Indexes exist for:
 
-Where appropriate, the platform may use:
+```text
+candidateId
+jobId
+status
+```
 
-deletedAt
+---
 
-Potentially relevant entities include:
+# 21. Application Status
 
-users;
-candidates;
-companies;
-jobs.
+The current application statuses are:
 
-However, soft deletion must not conflict with legal requirements to permanently delete personal data.
+```text
+PENDING
+REVIEWING
+ACCEPTED
+REJECTED
+WITHDRAWN
+```
 
-Soft deletion should therefore be introduced deliberately rather than automatically on every table.
+The status represents the current state of a candidate's application.
 
-31. Index Strategy
+---
 
-Indexes should be added based on actual query patterns.
+# 22. Entity Relationships
 
-Potential indexes include:
+The main database relationships are:
 
-users.email
-companies.slug
-jobs.companyId
-jobs.status
-jobs.createdAt
-candidate_skills.candidateId
-candidate_skills.skillId
-job_requirements.jobId
-job_requirements.skillId
-matches.candidateId
-matches.jobId
-matches.overallScore
+```text
+User
+ │
+ ├────────────── Candidate
+ │                  │
+ │                  ├── CandidateSkill ── Skill
+ │                  │
+ │                  ├── Match ────────── Job
+ │                  │
+ │                  └── Application ──── Job
+ │
+ └────────────── Recruiter
+                    │
+                    ├── Company
+                    │
+                    └── Job
+```
 
-Only indexes that correspond to actual implemented fields and query patterns should be added to the Prisma schema.
+Job relationships:
 
-Composite indexes should be introduced when query patterns justify them.
+```text
+Company
+   │
+   └── Job
+        ├── JobRequirement ── Skill
+        ├── Match ─────────── Candidate
+        └── Application ───── Candidate
+```
 
-32. Unique Constraints
+These relationships are represented through Prisma relations and foreign keys.
 
-Target unique constraints include:
+---
 
-users.email
-companies.slug
+# 23. Unique Constraints
 
-For CandidateSkill:
+Current unique constraints include:
 
-(candidateId, skillId)
+```text
+User.email
 
-For JobRequirement:
+Company.slug
 
-(jobId, skillId)
+Candidate.userId
 
-These relationship constraints prevent duplicate relationships.
+Recruiter.userId
 
-They should only be added when the corresponding tables are implemented.
+CandidateSkill(candidateId, skillId)
 
-33. Referential Integrity
+JobRequirement(jobId, skillId)
 
-Foreign keys must enforce relationships.
+Match(candidateId, jobId)
 
-Example:
+Application(candidateId, jobId)
+```
 
+These constraints protect the integrity of identity and domain relationships.
+
+---
+
+# 24. Index Strategy
+
+The current Prisma schema defines indexes where they support common relationship and filtering operations.
+
+Examples include:
+
+```text
+Recruiter.companyId
+
+Job.companyId
+Job.status
+Job(status, publishedAt)
+Job(status, expiresAt)
+Job.createdAt
+
+CandidateSkill.candidateId
+CandidateSkill.skillId
+
+JobRequirement.jobId
+JobRequirement.skillId
+
+Match.candidateId
+Match.jobId
+Match.overallScore
+
+Application.candidateId
+Application.jobId
+Application.status
+```
+
+Indexes should remain aligned with actual application query patterns.
+
+---
+
+# 25. Referential Integrity
+
+Relationships use Prisma foreign-key relations.
+
+Examples:
+
+```text
+candidates.userId
+        ↓
+users.id
+```
+
+```text
 candidate_skills.candidateId
         ↓
 candidates.id
+```
 
-and:
-
+```text
 candidate_skills.skillId
         ↓
 skills.id
+```
 
-Deletion behavior must be defined deliberately.
+```text
+jobs.companyId
+        ↓
+companies.id
+```
 
-The application should avoid accidental cascading deletion of large amounts of personal or recruitment data.
+```text
+jobs.createdByRecruiterId
+        ↓
+recruiters.id
+```
 
-The exact Prisma onDelete behavior is part of the implementation and should be documented when the corresponding relationships are introduced.
+```text
+applications.jobId
+        ↓
+jobs.id
+```
 
-34. Transaction Strategy
+```text
+applications.candidateId
+        ↓
+candidates.id
+```
 
-Operations affecting multiple related entities should use database transactions where atomicity is required.
+The Prisma schema is authoritative for relationship definitions and deletion behavior.
 
-Future example:
+---
 
-BEGIN TRANSACTION
+# 26. Decimal Data
 
+Financial and scoring values use Prisma `Decimal` fields where appropriate.
 
-Create Job
-Create JobRequirement #1
-Create JobRequirement #2
-Create JobRequirement #3
+Examples include:
 
+```text
+Candidate.salaryMin
+Candidate.salaryMax
 
-COMMIT
+CandidateSkill.yearsOfExperience
+CandidateSkill.confidence
 
-If one operation fails, the complete operation should roll back when atomicity is required.
+Job.salaryMin
+Job.salaryMax
 
-Transactions are application-level behavior implemented through Prisma.
+JobRequirement.weight
 
-35. Data Ownership
+Match.overallScore
+Match.skillScore
+Match.experienceScore
+Match.locationScore
+Match.salaryScore
+Match.availabilityScore
+Match.preferenceScore
+```
 
-Data ownership follows the domain model.
+This avoids representing these values as application-level floating-point fields in the Prisma model.
 
+---
+
+# 27. JSON Data
+
+The database currently uses JSON for:
+
+```text
+Match.explanation
+```
+
+This is used for structured match explanation data.
+
+Other domain information remains represented through relational columns and entities.
+
+---
+
+# 28. Database and Matching Separation
+
+The database stores the information required by matching:
+
+```text
 Candidate
-
-Owns:
-
-candidate profile;
-candidate skills;
-candidate preferences;
-candidate documents.
-Company
-
-Owns:
-
-company profile;
-company jobs;
-recruiter relationships.
-Recruiter
-
-Acts on behalf of a company.
-
-Platform
-
-Owns:
-
-normalized skills;
-matching configuration;
-system-level metadata.
-
-These ownership rules become enforceable when the corresponding domains are implemented.
-
-36. AI-generated Data
-
-Status: 🔵 Planned / Roadmap
-
-AI-generated data should be identifiable.
-
-Example:
-
+    +
 CandidateSkill
-source = AI_EXTRACTED
-confidence = 0.91
-
-AI should not overwrite verified information without an explicit business rule.
-
-Target flow:
-
-AI suggestion
-      ↓
-Validation / Human confirmation
-      ↓
-Verified data
-
-This distinction is particularly important for candidate skills and future matching.
-
-37. Database and Matching Separation
-
-The database stores the data required by the matching engine.
-
-The matching engine itself remains application logic.
-
-PostgreSQL
-    │
-    ▼
-Candidate + Skills
-Job + Requirements
-    │
-    ▼
-Matching Service
-    │
-    ▼
-Match
-
-The complete matching algorithm must not be embedded in SQL.
-
-38. Future Extensions
-
-Status: 🔵 Planned / Roadmap
-
-The database may later be extended with:
-
-applications
-candidate_documents
-assessments
-assessment_results
-messages
-notifications
-subscriptions
-payments
-audit_logs
-skill_aliases
-skill_taxonomy
-candidate_preferences
-job_preferences
-
-These are deliberately excluded from the current implementation unless a concrete requirement requires them.
-
-39. Current Database Status
-
-The current database implementation should be understood as an incremental foundation rather than the complete target domain model.
-
-Implemented
-User
-Skill
-Authentication-related persistence
-Initial Candidate/profile persistence
-Foundation / Partial
-Candidate domain
-Role/status model
-Database relationships required by current user/profile flows
-Planned
-Company
-Recruiter
+    +
 Job
-CandidateSkill
+    +
 JobRequirement
+```
+
+The resulting match is stored as:
+
+```text
 Match
-Candidate documents
-AI-generated skill data
-Matching data
-Recruitment/application data
-
-The Prisma schema is the authoritative source for what is actually implemented.
-
-40. Initial Entity Relationship Diagram
-
-The target MVP ERD is:
-
-┌──────────────┐
-│    users     │
-└──────┬───────┘
-       │
-   ┌───┴──────────────┐
-   │                  │
-   ▼                  ▼
-┌──────────────┐  ┌──────────────┐
-│  candidates  │  │  recruiters  │
-└──────┬───────┘  └──────┬───────┘
-       │                 │
-       │                 ▼
-       │          ┌──────────────┐
-       │          │  companies   │
-       │          └──────┬───────┘
-       │                 │
-       │                 ▼
-       │          ┌──────────────┐
-       │          │     jobs     │
-       │          └──────┬───────┘
-       │                 │
-       │                 ▼
-       │          ┌──────────────────┐
-       │          │ job_requirements │
-       │          └────────┬─────────┘
-       │                   │
-       ▼                   ▼
-┌────────────────┐   ┌──────────────┐
-│candidate_skills│──▶│    skills    │
-└───────┬────────┘   └──────────────┘
-        │
-        ▼
-┌──────────────────────┐
-│       matches        │
-└──────────────────────┘
-        ▲
-        │
-        └──────── jobs
-
-This diagram represents the target domain architecture, not necessarily the current database schema.
-
-41. Prisma Strategy
-
-Prisma is the database access layer.
-
-The schema lives in:
-
-it-talent-backend/prisma/schema.prisma
-
-The documentation repository describes the intended architecture.
-
-The actual Prisma schema is the implementation source of truth.
-
-If implementation requires a deliberate deviation from this document:
-
-update the Prisma schema;
-update database.md;
-update an ADR when the deviation represents a significant architectural decision.
-42. Migration Strategy
-
-Database changes must use Prisma migrations.
-
-Production database structures must not be manually altered without an appropriate migration.
-
-Expected workflow:
-
-Change Prisma schema
-        ↓
-Create migration
-        ↓
-Run tests
-        ↓
-Commit migration
-        ↓
-Deploy
-
-Migration files must be version-controlled.
-
-43. Database Development Environment
-
-Local development should support PostgreSQL through Docker or another reproducible local PostgreSQL environment.
+```
 
 Conceptually:
 
-Developer machine
-      │
-      └── Docker
-            │
-            └── PostgreSQL
+```text
+PostgreSQL
+    │
+    ├── Candidate + Skills
+    │
+    └── Job + Requirements
+             │
+             ▼
+       Matching Logic
+             │
+             ▼
+           Match
+```
 
-The exact Docker Compose/database setup is defined by the backend repository.
+Matching calculations belong to backend application logic.
 
-44. Production Database
+---
 
-The production database will use a managed PostgreSQL service.
+# 29. Data Ownership
 
-The provider is intentionally not fixed in this document.
+The database model separates ownership by domain.
 
-Selection criteria include:
+**Candidate**
 
-PostgreSQL compatibility;
-development/free-tier suitability;
-backups;
-security;
-Vercel compatibility;
-predictable pricing;
-easy migration.
+Owns:
 
-The production provider should be documented separately once selected.
+* candidate profile;
+* candidate skills;
+* candidate matches;
+* candidate applications.
 
-45. Database Security
+**Recruiter**
 
-Production database credentials must never be committed to GitHub.
+Owns recruiter account information and recruiter-created jobs.
 
-Access should be controlled through environment variables.
+**Company**
 
-Application users should receive only the permissions required by the application.
+Owns company information and its associated jobs and recruiters.
 
-Database access should not be exposed directly to the public internet unless the selected managed provider requires it and appropriate security controls are configured.
+**Platform**
+
+Owns:
+
+* skill catalog;
+* job requirements;
+* matching data;
+* application state.
+
+The exact authorization rules are enforced by the backend application.
+
+---
+
+# 30. Database Transactions
+
+Operations affecting multiple related records should use Prisma transactions when atomicity is required.
+
+For example, creating a job together with multiple job requirements can be handled as one transaction:
+
+```text
+Create Job
+   ↓
+Create JobRequirement records
+   ↓
+Commit
+```
+
+If an operation fails, the transaction can roll back the related database changes.
+
+---
+
+# 31. Migration Strategy
+
+Database schema changes should use Prisma migrations.
+
+Expected workflow:
+
+```text
+Update schema.prisma
+        ↓
+Create Prisma migration
+        ↓
+Run tests
+        ↓
+Commit schema + migration
+        ↓
+Deploy
+```
+
+Migration files should remain version-controlled with the backend repository.
+
+---
+
+# 32. Database Development
+
+The backend uses PostgreSQL through Prisma.
+
+The database connection is configured through the backend environment configuration.
+
+The Prisma schema defines:
+
+* models;
+* relations;
+* enums;
+* indexes;
+* unique constraints;
+* default values;
+* database field types.
+
+---
+
+# 33. Database Security
 
 Database credentials must remain backend-only.
 
-46. Data Retention
+Sensitive database configuration must not be committed to the repository.
 
-Retention policies will be defined separately as product requirements and GDPR analysis mature.
+The frontend communicates with the backend API rather than connecting directly to PostgreSQL.
 
-Potential categories include:
+The backend is responsible for:
 
-Account data
-Candidate profile
-CV documents
-Recruitment activity
-Match history
-Audit data
-AI processing data
+* authentication;
+* authorization;
+* validation;
+* database access;
+* protection of user and recruitment data.
 
-Each category may require a different retention period.
+---
 
-47. Database Version
+# 34. Personal Data
 
-This document defines:
+The database contains personal and professional information, including:
 
-Database Architecture v0.1.1
+* email addresses;
+* candidate profile information;
+* salary preferences;
+* availability;
+* professional skills;
+* recruiter and company information;
+* application data.
 
-The schema is expected to evolve during implementation.
+Access to this information must be controlled by backend authorization.
 
-Changes affecting the conceptual model must be documented through:
+---
 
-updated database.md;
-Prisma migration;
-ADR when the architectural decision is significant.
-48. Source of Truth
+# 35. Current Database Scope
 
-For database implementation, the following hierarchy applies:
+The current Prisma schema contains these implemented domain areas:
 
-1. Prisma schema
-        ↓
-2. Database migrations
-        ↓
-3. Backend implementation
-        ↓
-4. Documentation
+| Domain           | Entity         |
+| ---------------- | -------------- |
+| Authentication   | User           |
+| Candidate        | Candidate      |
+| Recruiter        | Recruiter      |
+| Company          | Company        |
+| Jobs             | Job            |
+| Skills           | Skill          |
+| Candidate skills | CandidateSkill |
+| Job requirements | JobRequirement |
+| Matching         | Match          |
+| Applications     | Application    |
 
-The documentation must describe the implementation accurately.
+The database therefore represents the core candidate, recruiter, job, skill, matching, and application domains.
 
-If documentation and implementation disagree, the discrepancy must be identified and resolved rather than silently assuming that the documentation is correct.
+---
 
-49. Next Step
+# 36. Current Entity Status
 
-The next technical document should be:
+| Entity         | Status        |
+| -------------- | ------------- |
+| User           | ✅ Implemented |
+| Candidate      | ✅ Implemented |
+| Recruiter      | ✅ Implemented |
+| Company        | ✅ Implemented |
+| Job            | ✅ Implemented |
+| Skill          | ✅ Implemented |
+| CandidateSkill | ✅ Implemented |
+| JobRequirement | ✅ Implemented |
+| Match          | ✅ Implemented |
+| Application    | ✅ Implemented |
 
-it-talent-docs/
-└── architecture/
-    ├── architecture.md
-    ├── database.md        ← CURRENT
-    ├── api.md             ← NEXT
-    └── security.md
+These statuses are based specifically on the current Prisma schema.
 
-The next review should compare architecture/api.md directly against the actual NestJS controllers and routes.
+---
 
-The same status model must be used:
+# 37. Current Entity Relationship Diagram
 
-✅ Implemented
-🟡 Foundation / Partial
-🔵 Planned / Roadmap
-50. Document Status
+```text
+                         ┌──────────────┐
+                         │    users     │
+                         └──────┬───────┘
+                                │
+                    ┌───────────┴───────────┐
+                    │                       │
+                    ▼                       ▼
+             ┌──────────────┐       ┌──────────────┐
+             │  candidates  │       │  recruiters  │
+             └──────┬───────┘       └──────┬───────┘
+                    │                       │
+                    │                       ▼
+                    │                ┌──────────────┐
+                    │                │  companies   │
+                    │                └──────┬───────┘
+                    │                       │
+                    │                       ▼
+                    │                ┌──────────────┐
+                    │                │     jobs     │
+                    │                └──────┬───────┘
+                    │                       │
+             ┌──────┴───────┐        ┌─────┴────────────┐
+             │              │        │                  │
+             ▼              ▼        ▼                  ▼
+     ┌──────────────┐ ┌──────────┐ ┌────────────────┐ ┌──────────────┐
+     │candidate_    │ │ matches  │ │job_requirements│ │ applications │
+     │skills        │ └────┬─────┘ └───────┬────────┘ └──────┬───────┘
+     └──────┬───────┘      │               │                 │
+            │              │               │                 │
+            ▼              ▼               ▼                 ▼
+       ┌──────────┐     candidates       skills           candidates
+       │  skills  │
+       └──────────┘
+```
 
-Document: database.md
-Version: 0.1.1
-Status: Draft / Database Architecture Baseline
-Last updated: 2026-08-18
+This represents the current Prisma domain model.
 
-This document describes the current database foundation together with the target database architecture.
+---
 
-Future database changes must be reflected in the Prisma schema, migrations and this document.
+# 38. Prisma as Source of Truth
+
+The implementation hierarchy is:
+
+```text
+Prisma schema
+      ↓
+Prisma migrations
+      ↓
+Backend implementation
+      ↓
+Documentation
+```
+
+The primary database source of truth is:
+
+```text
+it-talent-backend/prisma/schema.prisma
+```
+
+Documentation must remain aligned with the implemented schema.
+
+When the schema changes, the corresponding database documentation should be reviewed and updated.
+
+---
+
+# 39. Current Database Definition
+
+The IT Talent Platform database provides the relational foundation for:
+
+* user accounts and roles;
+* candidate profiles;
+* recruiter profiles;
+* companies;
+* job vacancies;
+* normalized skills;
+* candidate skills;
+* job skill requirements;
+* candidate-job matching;
+* job applications.
+
+The model connects these domains through explicit relational entities, UUID identifiers, foreign keys, unique constraints, indexes, timestamps, enums, Decimal fields, and JSON match explanations.
+
+---
+
+# 40. Document Status
+
+**Document:** `database.md`
+**Version:** `0.2.0`
+**Status:** Current Database Architecture
+**Last updated:** 2026-09-10
+
+The Prisma schema remains the authoritative implementation source for the database model.
+
+Any future database change should be reflected in:
+
+1. `prisma/schema.prisma`;
+2. the corresponding Prisma migration;
+3. `database.md` where the documented architecture changes.

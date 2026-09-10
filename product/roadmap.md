@@ -1,827 +1,664 @@
-IT Talent Platform — Product Roadmap
+# IT Talent Platform — Product Roadmap
 
-Document: roadmap.md
-Version: 0.1.0
-Status: MVP Development Roadmap
-Last updated: 2026-08-12
+**Document:** `roadmap.md`
+**Version:** `0.2.0`
+**Status:** Product Roadmap
+**Last updated:** 2026-09-10
 
-1. Purpose
+---
 
-This roadmap defines the planned development sequence for the IT Talent Platform.
+# 1. Purpose
 
-The roadmap translates the product requirements into technical and product-development phases.
+This roadmap describes the functional structure and development direction of the current IT Talent Platform.
 
-The primary objective is to reach a working MVP as quickly as possible without compromising the architectural foundation.
+The roadmap is based on the current product design and organizes the platform into logical development areas.
 
-2. Development Strategy
+The platform is centered around:
 
-Development follows an incremental approach.
+* candidates;
+* recruiters;
+* companies;
+* skills;
+* jobs;
+* matching;
+* applications;
+* dashboards;
+* administration.
 
-We do not build the entire system first and test it afterward.
+---
 
-Instead:
+# 2. Development Structure
 
-Design
-  ↓
-Implement
-  ↓
-Test
-  ↓
-Integrate
-  ↓
-Deploy
-  ↓
-Validate
-  ↓
-Next feature
+The platform is organized into the following areas:
 
-Each phase should produce something that works.
-
-3. Repository Structure
-
-The project consists of three repositories:
-
-it-talent-frontend
-it-talent-backend
-it-talent-docs
-
-Conceptually:
-
-GitHub
+```text
+IT Talent Platform
 │
-├── it-talent-frontend
+├── Foundation
+│   └── Authentication & Access
 │
-├── it-talent-backend
+├── Candidate
+│   ├── Profile
+│   ├── Skills
+│   ├── Job Discovery
+│   └── Applications
 │
-└── it-talent-docs
+├── Recruiter
+│   ├── Profile
+│   ├── Company
+│   ├── Jobs
+│   ├── Candidates
+│   └── Applications
+│
+├── Matching
+│
+├── Administration
+│   ├── Users
+│   └── Skills
+│
+└── Platform
+    ├── Dashboard
+    └── Languages
+```
 
-The repositories remain independently deployable.
+---
 
-4. Technology Baseline
-Frontend
+# 3. Platform Foundation
 
-Initial technology direction:
+The foundation provides the functionality required by all platform users.
 
-Next.js
-React
-TypeScript
-Tailwind CSS
-Backend
+Core areas:
 
-Initial technology direction:
+* application structure;
+* authentication;
+* registration;
+* login;
+* logout;
+* role-based access;
+* API communication;
+* user management;
+* language support.
 
-NestJS
-TypeScript
-Prisma
-PostgreSQL
-Documentation
-Markdown
-Architecture Decision Records
-API documentation
-Product documentation
-5. Environment Strategy
+Supported roles:
 
-We will use at least:
+```text
+CANDIDATE
+RECRUITER
+ADMIN
+```
 
-Development
-Staging
-Production
+---
 
-For the initial project, staging may be lightweight.
+# 4. Candidate Experience
 
-Local development:
+The candidate experience is built around the professional profile and job discovery.
 
-localhost
-
-Preview deployments:
-
-GitHub branch / pull request
-        ↓
-Vercel preview
-
-Production:
-
-main
- ↓
-Production deployment
-6. Phase 0 — Project Foundation
-
-Priority: P0
-
-Goal: establish repositories, tooling and development conventions.
-
-Tasks
-Documentation
- architecture documentation
- database architecture
- API architecture
- security architecture
- product vision
- product requirements
- roadmap
-Repositories
- create GitHub repositories
- initialize frontend repository
- initialize backend repository
- initialize docs repository
-Development standards
- .gitignore
- .editorconfig
- ESLint
- Prettier
- TypeScript configuration
- README
- environment examples
-7. Phase 1 — Backend Foundation
-
-Priority: P0
-
-Goal: create a clean and testable NestJS backend.
-
-Tasks
- initialize NestJS;
- configure TypeScript;
- configure environment variables;
- configure Prisma;
- configure PostgreSQL;
- establish module structure;
- add global validation;
- add exception handling;
- add logging;
- add health endpoint;
- configure CORS;
- configure API versioning;
- configure Swagger/OpenAPI.
-
-Target API structure:
-
-/api/v1
-8. Phase 2 — Database Foundation
-
-Priority: P0
-
-Goal: implement the initial data model.
-
-Initial entities:
-
-User
-CandidateProfile
-RecruiterProfile
-Company
-Job
-Skill
-CandidateSkill
-JobSkill
-Match
-
-Potential supporting entities:
-
-CV
-AuditLog
-Session
-
-The database schema must follow:
-
-architecture/database.md
-9. Phase 3 — Authentication
-
-Priority: P0
-
-Goal: secure user accounts.
-
+```text
 Candidate
- registration;
- login;
- logout;
- authenticated session;
- password hashing.
-Recruiter
- registration;
- login;
- logout;
- authenticated session.
-Backend
- authentication guard;
- role guard;
- authorization policies;
- authentication tests.
-10. Phase 4 — Frontend Foundation
-
-Priority: P0
-
-Goal: establish the React/Next.js application.
-
-Tasks
- initialize Next.js;
- configure TypeScript;
- configure Tailwind;
- establish component architecture;
- establish layout;
- establish navigation;
- create API client;
- create authentication state;
- create error handling;
- create loading states.
-
-Initial pages:
-
-/
- /login
- /register
- /dashboard
-11. Phase 5 — Candidate Profile
-
-Priority: P0
-
-Goal: allow candidates to create a meaningful profile.
-
-Backend
- candidate profile CRUD;
- candidate skills;
- candidate preferences;
- visibility settings.
-Frontend
- profile page;
- profile editor;
- skill selector;
- proficiency selector;
- preferences.
-
-Example:
-
-Candidate Profile
-
-Name
-Professional title
-Summary
-
-Skills
-[React] [TypeScript] [Node.js]
-
-Experience
-6 years
-
-Location
-Amsterdam
-
-Remote
-Hybrid
-
-Availability
-Open to opportunities
-12. Phase 6 — Recruiter & Company
-
-Priority: P0
-
-Goal: allow recruiters to operate within a company.
-
-Backend
- recruiter profile;
- company CRUD;
- recruiter-company relationship;
- company authorization.
-Frontend
- recruiter dashboard;
- company profile;
- recruiter settings.
-13. Phase 7 — Jobs
-
-Priority: P0
-
-Goal: allow recruiters to create and publish jobs.
-
-Backend
- job CRUD;
- job status;
- job skills;
- required skills;
- preferred skills;
- publishing;
- closing.
-Frontend
-Recruiter Dashboard
-       │
-       ├── Jobs
-       │
-       ├── Create Job
-       │
-       └── Job Detail
-14. Phase 8 — Skill System
-
-Priority: P0
-
-Goal: establish a normalized skill vocabulary.
-
-Tasks
- skill database;
- skill search;
- skill autocomplete;
- skill normalization;
- duplicate prevention;
- basic administration.
-
-Initial seed data may include:
-
-JavaScript
-TypeScript
-React
-Next.js
-Node.js
-Python
-Java
-C#
-.NET
-PHP
-Go
-Rust
-AWS
-Azure
-GCP
-Docker
-Kubernetes
-Terraform
-PostgreSQL
-MySQL
-MongoDB
-Git
-Linux
-
-The list should grow based on actual product usage.
-
-15. Phase 9 — Job Discovery
-
-Priority: P0
-
-Goal: allow candidates to find jobs.
-
-Frontend:
-
-Jobs
-│
-├── Search
-├── Filters
-└── Job cards
-
-Filters:
-
-skill;
-location;
-remote;
-employment type;
-salary.
-16. Phase 10 — Matching Engine
-
-Priority: P0
-
-This is the core technical milestone.
-
-The first version should be deterministic and understandable.
-
-Conceptually:
-
-Candidate
-     │
-     ├── Skills
-     ├── Experience
-     ├── Location
-     ├── Salary
-     └── Preferences
-            │
-            ▼
-       Matching Engine
-            │
-            ▼
-           Score
-17. Initial Matching Algorithm
-
-The first implementation should not depend entirely on AI.
-
-Example weighting:
-
-Skills         50%
-Experience     20%
-Location       10%
-Salary         10%
-Preferences    10%
-
-Total:
-
-100%
-
-These weights are initial assumptions and should later be validated using real data.
-
-18. Required vs Preferred Skills
-
-Example:
-
-Required:
-React
-TypeScript
-
-Preferred:
-AWS
-Docker
-
-Missing:
-
-Required skill → strong penalty
-
-Preferred skill → smaller penalty
-
-This distinction is fundamental.
-
-19. Match Explanation
-
-The engine should return structured information such as:
-
-{
-  score: 91,
-  skillScore: 95,
-  experienceScore: 90,
-  locationScore: 100,
-  salaryScore: 85,
-  preferenceScore: 80,
-  strengths: [],
-  gaps: []
-}
-
-The frontend converts this into a human-readable explanation.
-
-20. Phase 11 — Candidate Match Dashboard
-
-Priority: P0
-
-Candidate dashboard:
-
-Recommended Jobs
-
-Senior React Developer
-91% Match
-
-Frontend Engineer
-87% Match
-
-Full Stack Developer
-82% Match
-
-Job detail:
-
-91% Match
-
-Why?
-
-✓ React
-✓ TypeScript
-✓ AWS
-✓ Amsterdam
-✓ Hybrid
-
-Potential gap:
-
-○ Kubernetes
-21. Phase 12 — Recruiter Candidate Matching
-
-Priority: P0
-
-Recruiter job page:
-
-Senior React Developer
-
-Matching Candidates
-
-1. Candidate A   94%
-2. Candidate B   91%
-3. Candidate C   87%
-4. Candidate D   83%
-
-Recruiter can inspect the explanation.
-
-22. Phase 13 — CV Upload
-
-Priority: P0**
-
-Candidate flow:
-
-Upload CV
-    ↓
-Validate file
-    ↓
-Store file
-    ↓
-Extract text
-    ↓
-Process
-
-Initially:
-
-PDF only
-23. Phase 14 — AI CV Analysis
-
-Priority: P0
-
-AI-assisted processing:
-
-CV
- ↓
-Text
- ↓
-AI
- ↓
-Structured profile suggestions
- ↓
-Validation
- ↓
-Candidate review
-
-The AI must not directly modify trusted candidate information without appropriate validation/review.
-
-24. Phase 15 — AI Job Analysis
-
-Priority: P0
-
-Recruiter enters:
-
-Job description
-
-AI suggests:
-
-Skills
-Experience
-Seniority
-Technologies
-
-Recruiter reviews the result.
-
-25. Phase 16 — Integration
-
-Priority: P0
-
-At this stage:
-
-Frontend
-     │
-     ▼
-Backend
-     │
-     ├── PostgreSQL
-     │
-     └── AI Provider
-
-must work end-to-end.
-
-26. Phase 17 — Security Hardening
-
-Priority: P0
-
-Before public testing:
-
- authorization review;
- IDOR testing;
- rate limiting;
- CORS;
- security headers;
- input validation;
- upload security;
- secret review;
- dependency audit;
- authentication testing.
-27. Phase 18 — Automated Testing
-
-Priority: P0
-
-Testing layers:
-
-Unit
- ↓
-Integration
- ↓
-API
- ↓
-End-to-End
-
-Priority test areas:
-
-Authentication
-Authorization
-Candidate profile
-Company isolation
-Jobs
-Skills
-Matching
-CV processing
-28. Phase 19 — CI/CD
-
-Priority: P0
-
-GitHub Actions should eventually perform:
-
-Pull Request
-     │
-     ├── Install
-     ├── Lint
-     ├── Type check
-     ├── Unit tests
-     ├── Build
-     └── Security checks
-
-Only successful builds should be eligible for merging.
-
-29. Phase 20 — Deployment
-
-Priority: P0
-
-Initial deployment architecture:
-
-GitHub
    │
-   ├───────────────┐
-   ▼               ▼
-Frontend         Backend
-Vercel           Hosting platform
-   │               │
-   └───────┬───────┘
-           ▼
-       PostgreSQL
+   ├── Profile
+   ├── Skills
+   ├── Preferences
+   ├── Job Discovery
+   ├── Matching
+   └── Applications
+```
 
-The frontend can use Vercel preview deployments for pull requests.
+Candidate functionality includes:
 
-The exact backend hosting provider will be selected during implementation based on cost, PostgreSQL support, networking and deployment simplicity.
+* registration;
+* login;
+* profile management;
+* skill management;
+* job search;
+* job filtering;
+* job sorting;
+* job details;
+* job matching;
+* job applications;
+* application status;
+* application withdrawal.
 
-30. Phase 21 — Closed Beta
+---
 
-Priority: P0**
+# 5. Candidate Profile
 
-Before public launch:
+The candidate profile provides the professional information used throughout the platform.
 
-5–20 candidates
-+
-3–10 recruiters
-+
-realistic jobs
+The profile includes:
 
-The objective is not scale.
+* professional headline;
+* summary;
+* location;
+* salary expectation;
+* currency;
+* availability;
+* remote-work preference;
+* skills;
+* experience information.
 
-The objective is learning.
+The profile is the central source of candidate information for job discovery and matching.
 
-31. Beta Questions
+---
 
-We need to discover:
+# 6. Skills
 
-Candidates
-Do they complete their profile?
-Do they trust the match score?
-Are explanations understandable?
-Are recommended jobs relevant?
-Recruiters
-Do they trust ranked candidates?
-Does matching save time?
-Are candidate profiles useful?
-Would they pay for this?
-32. Phase 22 — Matching Improvement
+Skills are a central platform component.
 
-After beta, improve matching based on real feedback.
+The skill functionality is used by:
 
-Possible improvements:
+* candidates;
+* jobs;
+* matching;
+* administration.
 
-Skill synonyms
-Skill relationships
-Seniority
-Experience relevance
-Industry
-Company preferences
-Candidate preferences
-Semantic similarity
+Candidate skills can contain:
 
-Only after deterministic matching is working should more sophisticated AI/ML techniques be introduced.
+* skill;
+* proficiency;
+* years of experience.
 
-33. Phase 23 — Monetization Experiment
+Candidates can:
 
-Priority: P1
+* add skills;
+* edit skills;
+* remove skills.
 
-Once the product demonstrates value:
+Administrators can manage the platform skill catalog.
 
-Free
-   ↓
-Professional
-   ↓
-Business
+---
 
-Possible paid features:
+# 7. Job Discovery
 
-advanced candidate search;
-higher search limits;
-advanced matching;
-talent pools;
-analytics;
-AI processing;
-recruiter collaboration.
-34. Phase 24 — Public MVP
+Candidates can discover jobs through the job discovery experience.
 
-The public MVP should contain:
+The job discovery functionality includes:
 
+* job listings;
+* search;
+* location filtering;
+* work-mode filtering;
+* employment-type filtering;
+* salary filtering;
+* skill filtering;
+* sorting;
+* pagination.
+
+Supported work modes include:
+
+* remote;
+* hybrid;
+* onsite;
+* flexible.
+
+---
+
+# 8. Job Details
+
+Candidates can open individual jobs to view detailed information.
+
+Job details include:
+
+* job title;
+* description;
+* company information;
+* location;
+* work mode;
+* employment type;
+* salary;
+* required skills;
+* preferred skills.
+
+The job detail experience also provides access to the application flow.
+
+---
+
+# 9. Matching
+
+Matching connects candidate profiles with jobs.
+
+The matching process uses structured information such as:
+
+```text
 Candidate
-    ├── Account
-    ├── Profile
-    ├── Skills
-    ├── CV
-    └── Job Matching
+│
+├── Skills
+├── Experience
+├── Location
+├── Salary
+├── Availability
+└── Preferences
+        │
+        ▼
+     Matching
+        │
+        ▼
+       Job
+```
 
+Matching information can be used to:
+
+* identify relevant jobs;
+* identify relevant candidates;
+* present compatibility;
+* support candidate discovery;
+* support recruiter candidate review.
+
+---
+
+# 10. Applications
+
+Applications are part of the current platform experience.
+
+The application flow is:
+
+```text
+Candidate
+    ↓
+Job
+    ↓
+Apply
+    ↓
+Application
+    ↓
+Application Status
+```
+
+Candidates can:
+
+* apply for jobs;
+* add a cover letter;
+* view applications;
+* view application details;
+* track application status;
+* withdraw applications where supported.
+
+Supported application statuses include:
+
+* pending;
+* reviewing;
+* accepted;
+* rejected;
+* withdrawn.
+
+Recruiters can view applications associated with their jobs.
+
+---
+
+# 11. Recruiter Experience
+
+The recruiter experience is focused on managing recruitment information.
+
+```text
 Recruiter
-    ├── Account
-    ├── Company
-    ├── Jobs
-    └── Candidate Matching
-35. Post-MVP Roadmap
+   │
+   ├── Profile
+   ├── Company
+   ├── Jobs
+   ├── Candidates
+   └── Applications
+```
 
-Potential Phase 2 capabilities:
+Recruiters can:
 
+* manage recruiter information;
+* work within a company context;
+* create jobs;
+* manage jobs;
+* define required skills;
+* define preferred skills;
+* publish jobs;
+* manage job status;
+* view candidates;
+* review applications.
+
+---
+
+# 12. Company Context
+
+Jobs are managed within a company context.
+
+The company information is associated with recruiter and job functionality.
+
+The company context supports:
+
+* company information;
+* recruiter association;
+* job management;
+* candidate and application context.
+
+---
+
+# 13. Job Management
+
+Recruiters can create and manage jobs.
+
+The job management flow is:
+
+```text
+Create Job
+    ↓
+Enter Job Information
+    ↓
+Add Required / Preferred Skills
+    ↓
+Manage Job
+    ↓
+Publish
+    ↓
+Review Candidates
+    ↓
+Review Applications
+```
+
+Job information includes:
+
+* title;
+* description;
+* location;
+* work mode;
+* employment type;
+* salary;
+* required skills;
+* preferred skills.
+
+---
+
+# 14. Recruiter Candidate Experience
+
+Recruiters can view candidate-related information through the recruiter experience.
+
+Candidate information can be used together with matching information to support candidate discovery and review.
+
+The recruiter workflow is:
+
+```text
+Job
+ ↓
+Matching Candidates
+ ↓
+Candidate Information
+ ↓
+Application Information
+```
+
+---
+
+# 15. Dashboards
+
+The platform provides role-specific dashboards.
+
+## Candidate Dashboard
+
+The candidate dashboard provides:
+
+* profile completion;
+* applications;
+* available jobs;
+* recommended jobs;
+* skills;
+* recent applications;
+* recent jobs.
+
+## Recruiter Dashboard
+
+The recruiter dashboard provides:
+
+* company information;
+* jobs by status;
+* applications;
+* recent candidates;
+* recent jobs.
+
+## Admin Dashboard
+
+The admin experience provides access to platform management functionality.
+
+---
+
+# 16. Administration
+
+Administration provides management functionality for platform data.
+
+Current administration areas include:
+
+```text
+Administration
+│
+├── Users
+└── Skills
+```
+
+Administrators can manage:
+
+* users;
+* user information;
+* roles;
+* skills.
+
+---
+
+# 17. Multilingual Platform
+
+The platform supports multiple interface languages.
+
+Current languages:
+
+* English;
+* Dutch.
+
+English is the default language.
+
+The application uses a shared translation system for interface content.
+
+The language functionality is available through the application interface.
+
+---
+
+# 18. Platform Navigation
+
+The main application navigation is organized around the user's role.
+
+Common functionality includes:
+
+```text
+Dashboard
+Profile
+Jobs / Find Jobs
 Applications
-Messaging
-Saved candidates
-Saved jobs
-Recruiter notes
-Talent pools
-Notifications
-Email integration
-36. Phase 3 — Talent Intelligence
+Language
+Logout
+```
 
-Potential future capabilities:
+Additional navigation and functionality are provided according to the authenticated role.
 
-Skills graph
-Skill-gap analysis
-Career recommendations
-Salary intelligence
-Talent trends
-Market analytics
-37. Phase 4 — Enterprise
+---
 
-Potential enterprise features:
+# 19. Functional Development Order
 
-SSO
-SCIM
-Advanced RBAC
-Audit exports
-Enterprise analytics
-ATS integrations
-HRIS integrations
-API access
-38. Phase 5 — Marketplace
+The platform functionality can be understood in the following order:
 
-Long-term vision:
-
-Candidate
-     │
-     ▼
-Talent Marketplace
-     ▲
-     │
-Recruiter / Company
-
-Potential capabilities:
-
-direct recruitment;
-talent pools;
-premium discovery;
-recruitment services;
-partner ecosystem.
-39. Roadmap Principles
-
-The project follows five rules.
-
-Rule 1 — Build the smallest useful product
-
-Do not build future functionality prematurely.
-
-Rule 2 — Validate the matching hypothesis
-
-Matching is the core product.
-
-Rule 3 — Prefer deterministic systems first
-
-AI should enhance the product, not hide weak business logic.
-
-Rule 4 — Deploy early
-
-The system should run online long before the product is "finished."
-
-Rule 5 — Real users determine priorities
-
-After the first beta, roadmap priorities should be adjusted based on actual usage.
-
-40. High-Level Timeline
-
-The exact dates will depend on development speed, but the sequence is:
-
+```text
 Foundation
     ↓
-Backend
-    ↓
-Database
-    ↓
 Authentication
     ↓
-Frontend
+User Roles
     ↓
+Candidate / Recruiter Profiles
+    ↓
+Skills
+    ↓
+Companies
+    ↓
+Jobs
+    ↓
+Job Discovery
+    ↓
+Matching
+    ↓
+Applications
+    ↓
+Dashboards
+    ↓
+Administration
+    ↓
+Multilingual Interface
+```
+
+These areas form the main functional structure of IT Talent.
+
+---
+
+# 20. Current Product Flow
+
+The complete platform experience connects the main functional areas:
+
+```text
+                    IT Talent
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+      Candidate                  Recruiter
+          │                         │
+       Profile                   Company
+          │                         │
+        Skills                    Jobs
+          │                         │
+          └──────────┬──────────────┘
+                     │
+                  Matching
+                     │
+              ┌──────┴──────┐
+              │             │
+             Jobs       Candidates
+              │             │
+              └──────┬──────┘
+                     │
+                Applications
+                     │
+                  Dashboard
+```
+
+---
+
+# 21. Current Product Areas
+
+The current IT Talent roadmap consists of these functional areas:
+
+| Area           | Main functionality                       |
+| -------------- | ---------------------------------------- |
+| Foundation     | Authentication, roles, API communication |
+| Candidate      | Profile, skills, preferences             |
+| Recruiter      | Profile, company context                 |
+| Jobs           | Job creation, management, publishing     |
+| Job Discovery  | Search, filters, sorting, pagination     |
+| Skills         | Skill selection and administration       |
+| Matching       | Candidate/job compatibility              |
+| Applications   | Apply, status, withdrawal                |
+| Dashboards     | Candidate, recruiter, admin              |
+| Administration | Users and skills                         |
+| Languages      | English and Dutch                        |
+
+---
+
+# 22. Product Development Direction
+
+Development of IT Talent should continue by extending the existing platform areas while keeping the core user flows consistent.
+
+The primary functional flow remains:
+
+```text
+Candidate
+   ↓
+Profile
+   ↓
+Skills
+   ↓
+Jobs
+   ↓
+Matching
+   ↓
+Application
+```
+
+For recruiters:
+
+```text
+Recruiter
+   ↓
+Company
+   ↓
+Job
+   ↓
+Skills
+   ↓
+Matching
+   ↓
+Candidates
+   ↓
+Applications
+```
+
+---
+
+# 23. Roadmap Principles
+
+## 23.1 User-Centered
+
+Development should support the main Candidate, Recruiter, and Admin experiences.
+
+## 23.2 Skill-Oriented
+
+Skills remain a central component of profiles, jobs, and matching.
+
+## 23.3 Structured
+
+Candidate, recruiter, company, job, skill, matching, and application information should remain structured.
+
+## 23.4 Consistent
+
+New functionality should follow the existing application structure, navigation, and interaction patterns.
+
+## 23.5 Multilingual
+
+New user-facing functionality should support the platform's English and Dutch interface.
+
+## 23.6 Role-Based
+
+Functionality should remain aligned with the permissions and responsibilities of each platform role.
+
+---
+
+# 24. Current Roadmap Status
+
+The product documentation defines the current functional structure of IT Talent:
+
+```text
+Product Vision       ✓
+Product Requirements ✓
+Product Roadmap      ✓
+
+Candidate            ✓
+Recruiter            ✓
+Company              ✓
+Skills               ✓
+Jobs                 ✓
+Job Discovery        ✓
+Matching             ✓
+Applications         ✓
+Dashboards           ✓
+Administration       ✓
+English / Dutch      ✓
+```
+
+---
+
+# 25. Next Development Focus
+
+Future development should build on the existing platform structure and continue improving the core experiences:
+
+```text
 Candidate
     ↓
 Recruiter
@@ -832,106 +669,9 @@ Skills
     ↓
 Matching
     ↓
-AI
+Applications
     ↓
-Integration
-    ↓
-Security
-    ↓
-Testing
-    ↓
-Deployment
-    ↓
-Beta
-41. MVP Critical Path
+Platform Management
+```
 
-The critical path is:
-
-Database
-   ↓
-Authentication
-   ↓
-Candidate Profile
-   ↓
-Recruiter / Company
-   ↓
-Job
-   ↓
-Skills
-   ↓
-Matching
-   ↓
-Frontend
-   ↓
-End-to-End
-
-CV/AI functionality is important, but the product should still be demonstrable without AI.
-
-That is a deliberate architectural decision.
-
-42. First Demonstrable Version
-
-Our first meaningful demo should be:
-
-Candidate
-   │
-   ├── creates profile
-   └── adds skills
-          │
-          ▼
-       Database
-          ▲
-          │
-Recruiter
-   │
-   ├── creates company
-   └── creates job
-          │
-          ▼
-     Required Skills
-          │
-          ▼
-    Matching Engine
-          │
-          ▼
-      Match: 91%
-
-If this works, we already have a real product prototype.
-
-Everything else builds on top of this.
-
-43. Current Status
-Architecture       ████████████████████ 100%
-Product Vision     ████████████████████ 100%
-Requirements       ████████████████████ 100%
-Roadmap            ████████████████████ 100%
-
-Repositories       ░░░░░░░░░░░░░░░░░░░░   0%
-Backend             ░░░░░░░░░░░░░░░░░░░░   0%
-Frontend            ░░░░░░░░░░░░░░░░░░░░   0%
-Database            ░░░░░░░░░░░░░░░░░░░░   0%
-Matching            ░░░░░░░░░░░░░░░░░░░░   0%
-AI                  ░░░░░░░░░░░░░░░░░░░░   0%
-44. Next Step
-
-De productdocumentatie is hiermee voor de MVP in principe compleet.
-
-Onze documentatiestructuur:
-
-it-talent-docs/
-│
-├── README.md
-│
-├── architecture/
-│   ├── architecture.md
-│   ├── database.md
-│   ├── api.md
-│   └── security.md
-│
-├── product/
-│   ├── vision.md
-│   ├── requirements.md
-│   └── roadmap.md
-│
-└── decisions/
-    └── README.md
+The roadmap remains centered on the current IT Talent product experience.

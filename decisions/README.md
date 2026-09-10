@@ -1,48 +1,56 @@
-
-### `decisions/README.md`
-
-```md
 # Architecture Decision Records
 
-This directory contains important architectural decisions for the IT Talent Platform.
+This directory contains the Architecture Decision Records (ADRs) for the IT Talent Platform.
 
-ADRs document decisions that have a meaningful impact on the architecture, development process or long-term maintainability of the platform.
+ADRs document important architectural decisions that define how the platform is structured and developed.
 
 ## Decisions
 
-| ADR | Decision | Status |
-|---|---|---|
-| ADR-001 | Multi-Repository Architecture | Accepted |
-| ADR-002 | Frontend Technology — React + Vite | Accepted |
+| ADR     | Decision                                                | Status   |
+| ------- | ------------------------------------------------------- | -------- |
+| ADR-001 | Multi-Repository Architecture                           | Accepted |
+| ADR-002 | Frontend Technology — React + Vite                      | Accepted |
 | ADR-003 | Backend Technology Stack — NestJS + Prisma + PostgreSQL | Accepted |
-| ADR-004 | Deployment Strategy | Accepted |
+| ADR-004 | Deployment Strategy                                     | Accepted |
 
-## Current Architecture Decisions
+## Current Architecture
 
-The current MVP architecture is based on:
+The current IT Talent Platform architecture is based on:
 
-- three independent repositories;
-- React + Vite + TypeScript + Oxlint for the frontend;
-- NestJS + TypeScript + Prisma + PostgreSQL for the backend;
-- versioned REST API communication;
-- independently deployed frontend and backend;
-- managed PostgreSQL in production;
-- backend-enforced security and authorization.
+* three independent repositories;
+* React + Vite + TypeScript + Oxlint for the frontend;
+* NestJS + TypeScript for the backend;
+* Prisma as the database access layer;
+* PostgreSQL as the primary database;
+* versioned REST API communication under `/api/v1`;
+* independently deployed frontend and backend applications;
+* backend-enforced authentication, authorization, and validation;
+* English and Dutch frontend support.
 
 ## ADR Lifecycle
 
-An ADR can have one of the following statuses:
+ADRs use the following statuses:
 
-- Proposed
-- Accepted
-- Superseded
-- Deprecated
+* **Proposed** — decision is under discussion;
+* **Accepted** — decision is approved and forms part of the architecture;
+* **Superseded** — replaced by a newer architectural decision;
+* **Deprecated** — no longer applicable.
 
-Once an architectural decision has been implemented, it should normally remain documented even if it is later replaced.
+Accepted decisions remain documented when they are later replaced, providing a record of the architectural evolution of the platform.
 
 ## Creating a New ADR
 
-New decisions should use:
+New architectural decisions should use the following naming convention:
 
-```text
+```text id="g4u8zn"
 ADR-NNN-short-description.md
+```
+
+Each ADR should clearly describe:
+
+* the context;
+* the decision;
+* the rationale;
+* the consequences.
+
+New ADRs should be added to this README.

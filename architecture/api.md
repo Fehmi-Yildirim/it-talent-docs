@@ -1,114 +1,52 @@
 # IT Talent Platform — API Specification
 
 **Document:** api.md
-**Version:** 0.2.0
-**Status:** Canonical API Contract Baseline
-**Last updated:** 2026-08-28
+**Version:** 0.3.0
+**Status:** Current API Specification
+**Last updated:** 2026-09-10
 
 ---
 
 # 1. Purpose
 
-This document defines the REST API architecture for the IT Talent Platform.
+This document defines the current REST API of the IT Talent Platform.
 
-The API is the formal communication boundary between:
+The API is the communication layer between the frontend and backend.
 
 ```text
 it-talent-frontend
-
         │
-
         │ HTTPS / JSON
-
         ▼
-
 it-talent-backend
-
         │
-
-        ├── PostgreSQL
-        ├── Business Logic
-        ├── Matching Engine
-        └── AI Services
+        └── PostgreSQL / Prisma
 ```
 
-The frontend must not directly access PostgreSQL.
+The frontend does not access PostgreSQL directly.
 
-This document distinguishes between:
+The backend is responsible for:
 
-* endpoints currently implemented;
-* endpoints that are partially implemented;
-* canonical target endpoints;
-* planned endpoints belonging to the target platform architecture.
+* authentication;
+* authorization;
+* validation;
+* business logic;
+* database access;
+* job management;
+* candidate profiles;
+* company and recruiter data;
+* skills;
+* job requirements;
+* applications;
+* dashboards.
 
-The actual NestJS controllers, DTOs, guards, services and tests remain the implementation source of truth.
-
----
-
-# 2. API Contract Status Model
-
-The following status model is used throughout this document.
-
-| Status                  | Meaning                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| ✅ Implemented           | Endpoint currently exists and is part of the active backend implementation        |
-| 🟡 Foundation / Partial | Related functionality exists, but the complete endpoint/domain is not implemented |
-| 🔵 Planned / Roadmap    | Target architecture only; not currently implemented                               |
-
-A documented target endpoint must not be interpreted as an implemented endpoint unless the backend implementation confirms its existence.
+The actual NestJS controllers, DTOs, guards, services and tests are the implementation source of truth.
 
 ---
 
-# 3. API Principles
+# 2. API Base Path
 
-The API follows these architectural principles:
-
-* REST-oriented resources;
-* JSON request and response bodies;
-* HTTPS in deployed environments;
-* versioned API paths;
-* explicit validation;
-* predictable HTTP status codes;
-* authentication where required;
-* backend-enforced authorization;
-* DTO-based request validation;
-* domain-level API resources;
-* pagination for large collections where required;
-* filtering and sorting where appropriate.
-
-The API must remain independent from the internal Prisma/database structure.
-
----
-
-# 4. Base URL
-
-## Local development
-
-The intended local API base path is:
-
-```text
-http://localhost:3001/api/v1
-```
-
-The exact local port and prefix must match the backend configuration.
-
-## Production
-
-The production API will eventually use a dedicated backend domain:
-
-```text
-https://<backend-domain>/api/v1
-```
-
-The production domain is not fixed in this document.
-
----
-
-# 5. API Versioning
-
-**Status:** 🟡 Architecture / Foundation
-
-The target API version is:
+The backend uses the global prefix:
 
 ```text
 /api/v1
@@ -117,68 +55,73 @@ The target API version is:
 Examples:
 
 ```text
-GET /api/v1/jobs
-GET /api/v1/candidates
+POST /api/v1/auth/login
+GET  /api/v1/jobs
+GET  /api/v1/skills
 ```
 
-Breaking API changes should result in a new major API version.
-
-The actual global prefix must match the NestJS application configuration.
+The global prefix is configured in the NestJS application bootstrap.
 
 ---
 
-# 6. Content Type
+# 3. Local API
 
-Standard API requests and responses use JSON.
+The backend listens on the configured application port.
+
+The default configuration is:
+
+```text
+http://localhost:3000
+```
+
+Therefore the local API base path is:
+
+```text
+http://localhost:3000/api/v1
+```
+
+The port can be changed through the backend environment configuration.
+
+---
+
+# 4. API Format
+
+The API uses JSON for normal requests and responses.
 
 ```text
 Content-Type: application/json
 ```
 
-Future file-upload functionality may use:
-
-```text
-multipart/form-data
-```
-
-or signed object-storage uploads.
-
-CV upload is currently roadmap functionality.
+The API uses UUID identifiers for domain resources where defined by the Prisma schema.
 
 ---
 
-# 7. Authentication
+# 5. Authentication
 
-**Status:** 🟡 Foundation / Partial
+Authentication uses JWT access tokens.
 
-Authentication is handled by the backend.
+Login returns an access token which is used for protected API requests.
 
-Conceptually:
+Protected requests use:
 
 ```text
-Client
-  │
-  ├── Login/Register
-  ▼
-Backend
-  │
-  └── Authenticated session/token
-        │
-        ▼
-Protected API
+Authorization: Bearer <accessToken>
 ```
 
-Authentication must never rely exclusively on frontend restrictions.
+The backend validates the token before allowing access to protected endpoints.
 
-The exact token/session transport mechanism must match the current backend implementation.
+Authentication is implemented through:
+
+* JWT authentication guard;
+* JWT strategy;
+* bearer authentication;
+* role guards where required.
 
 ---
 
-# 8. Roles
+# 6. Roles
 
-**Status:** 🟡 Foundation / Partial
-
-The target platform roles are:
+The platform supports three user roles:
 
 ```text
 CANDIDATE
@@ -186,159 +129,43 @@ RECRUITER
 ADMIN
 ```
 
-Authorization must be enforced by the backend.
+Role-based authorization is enforced by the backend.
 
-Not every role is necessarily fully implemented yet.
-
----
-
-# 9. HTTP Status Codes
-
-The target API uses conventional HTTP status codes.
-
-| Status | Meaning                         |
-| ------ | ------------------------------- |
-| 200    | Successful request              |
-| 201    | Resource created                |
-| 204    | Successful request with no body |
-| 400    | Invalid request                 |
-| 401    | Authentication required/invalid |
-| 403    | Insufficient permissions        |
-| 404    | Resource not found              |
-| 409    | Resource conflict               |
-| 422    | Validation error                |
-| 429    | Rate limit exceeded             |
-| 500    | Internal server error           |
-| 503    | Service unavailable             |
-
-The actual status code returned by the current backend is authoritative.
+The frontend may adapt its navigation and UI according to the authenticated role, but backend authorization remains authoritative.
 
 ---
 
-# 10. Standard Error Format
+# 7. Request Validation
 
-**Status:** 🟡 Foundation / Partial
+Incoming requests are validated with NestJS `ValidationPipe`.
 
-The target API should use a consistent error structure.
-
-Example:
-
-```json
-{
-  "statusCode": 400,
-  "code": "INVALID_REQUEST",
-  "message": "The request could not be processed.",
-  "details": []
-}
-```
-
-Validation example:
-
-```json
-{
-  "statusCode": 422,
-  "code": "VALIDATION_ERROR",
-  "message": "Validation failed.",
-  "details": [
-    {
-      "field": "email",
-      "message": "Invalid email address."
-    }
-  ]
-}
-```
-
-The exact error structure must follow the current NestJS exception/filter implementation.
-
----
-
-# 11. Pagination
-
-**Status:** 🔵 Planned / Endpoint-dependent
-
-Collection endpoints should support pagination where required.
-
-Example:
+The current configuration enables:
 
 ```text
-GET /api/v1/jobs?page=1&limit=20
+whitelist
+transform
+forbidNonWhitelisted
 ```
 
-Target response:
+This means:
 
-```json
-{
-  "data": [],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 120,
-    "totalPages": 6
-  }
-}
-```
+* DTO validation is applied to incoming data;
+* known values can be transformed to the expected types;
+* unsupported properties are rejected.
 
-The backend should enforce a maximum limit.
-
-For example:
-
-```text
-limit <= 100
-```
-
-Pagination should only be documented for endpoints that actually implement it.
+Validation rules are defined by the individual DTOs.
 
 ---
 
-# 12. Sorting
-
-**Status:** 🔵 Planned
-
-Collection endpoints may support sorting.
-
-Example:
-
-```text
-GET /api/v1/jobs?sort=createdAt&order=desc
-```
-
-Only explicitly supported fields may be used.
-
----
-
-# 13. Filtering
-
-**Status:** 🔵 Planned
-
-Collection endpoints may support filtering.
-
-Example:
-
-```text
-GET /api/v1/jobs?status=PUBLISHED&workMode=REMOTE
-```
-
-Future candidate discovery may support:
-
-```text
-GET /api/v1/candidates?skill=react&location=Amsterdam
-```
-
-Advanced filtering is roadmap functionality.
-
----
-
-# 14. Authentication Endpoints
+# 8. Authentication API
 
 ## Register
-
-**Status:** ✅ Implemented / Verify against current controller contract
-
-Target:
 
 ```text
 POST /api/v1/auth/register
 ```
+
+Creates a user account.
 
 Request:
 
@@ -350,13 +177,23 @@ Request:
 }
 ```
 
-The exact request and response schema must match the implemented DTO.
+Validation:
+
+* `email` must be a valid email address;
+* `password` must contain at least 8 characters;
+* `role` must be a valid `UserRole`.
+
+Supported roles:
+
+```text
+CANDIDATE
+RECRUITER
+ADMIN
+```
+
+---
 
 ## Login
-
-**Status:** ✅ Implemented / Verify against current controller contract
-
-Target:
 
 ```text
 POST /api/v1/auth/login
@@ -371,364 +208,211 @@ Request:
 }
 ```
 
-The backend creates the authenticated state according to the implemented authentication mechanism.
+The login endpoint validates the credentials and returns the authenticated access token.
 
-The documentation must not assume JWT/cookie/refresh-token behavior unless it exists in the implementation.
-
----
-
-# 15. Users
-
-The Users domain represents the platform user account and its core user-management operations.
-
-## Canonical Users API
-
-The canonical Users endpoints are:
-
-| Method | Endpoint            | Purpose                              |
-| ------ | ------------------- | ------------------------------------ |
-| GET    | `/api/v1/users/me`  | Get the authenticated user's account |
-| POST   | `/api/v1/users`     | Create a user                        |
-| GET    | `/api/v1/users`     | List users                           |
-| GET    | `/api/v1/users/:id` | Get a user by ID                     |
-| PATCH  | `/api/v1/users/:id` | Update a user                        |
-| DELETE | `/api/v1/users/:id` | Delete a user                        |
-
-These endpoints define the target Users resource boundary.
-
-User-specific Candidate and Candidate Skill operations are not part of the canonical Users API.
+The current implementation uses JWT bearer authentication.
 
 ---
 
-# 16. Current User
+# 9. Users API
 
-**Status:** 🟡 Foundation / Partial
+The Users API manages platform user accounts.
 
-Canonical endpoint:
+## Current User
 
 ```text
 GET /api/v1/users/me
 ```
 
-Returns information belonging to the authenticated user.
+Authentication required.
+
+Returns the authenticated user's account information.
 
 Example:
 
 ```json
 {
-  "id": "...",
-  "email": "...",
+  "id": "uuid",
+  "email": "user@example.com",
   "role": "CANDIDATE"
 }
 ```
 
-The exact response must match the current backend DTO.
-
 ---
 
-# 17. User Management
-
-The following endpoints belong to the canonical Users API.
-
 ## Create User
-
-**Status:** 🟡 Foundation / Partial
 
 ```text
 POST /api/v1/users
 ```
 
-The exact request and response schemas must match the current backend implementation.
+Authentication required.
+
+Admin access is required.
+
+Creates a user account through the Users domain.
+
+---
 
 ## List Users
-
-**Status:** 🟡 Foundation / Partial
 
 ```text
 GET /api/v1/users
 ```
 
-Pagination, filtering and sorting must only be documented when supported by the backend.
+Authentication required.
+
+Admin access is required.
+
+Returns the available user accounts.
+
+---
 
 ## Get User
-
-**Status:** 🟡 Foundation / Partial
 
 ```text
 GET /api/v1/users/:id
 ```
 
-The returned information must respect authentication, authorization and privacy rules.
+Authentication required.
+
+Returns a user according to the authorization rules implemented by the backend.
+
+---
 
 ## Update User
-
-**Status:** 🟡 Foundation / Partial
 
 ```text
 PATCH /api/v1/users/:id
 ```
 
-The backend must enforce which fields the authenticated user or authorized administrator may modify.
+Authentication required.
+
+Updates an authorized user account.
+
+---
 
 ## Delete User
-
-**Status:** 🟡 Foundation / Partial
 
 ```text
 DELETE /api/v1/users/:id
 ```
 
-The backend must enforce appropriate authorization and resource ownership rules.
+Authentication required.
+
+Admin access is required.
 
 ---
 
-# 18. Candidate
+# 10. Candidate API
 
-Candidate functionality belongs to the Candidate domain rather than the Users domain.
+Candidate functionality is exposed through the dedicated Candidates resource.
 
-## Current Backend Implementation
+Candidate endpoints require authentication and candidate authorization.
 
-**Status:** 🟡 Foundation / Partial
-
-The current backend exposes Candidate functionality through the Users resource:
-
-```text
-GET /api/v1/users/me/candidate
-POST /api/v1/users/me/candidate
-```
-
-These endpoints represent the current implementation and are not the canonical long-term Candidate API.
-
-## Canonical Candidate API
-
-The target Candidate API is:
+## Get My Candidate Profile
 
 ```text
 GET /api/v1/candidates/me
-POST /api/v1/candidates
-PATCH /api/v1/candidates/me
 ```
 
-**Status:** 🔵 Planned / Roadmap
-
-The canonical Candidate API establishes Candidate as an independent domain resource.
-
-The future refactoring should migrate Candidate operations from the current `/users/me/candidate` routes to the canonical `/candidates` resource.
-
-Example profile payload:
-
-```json
-{
-  "headline": "Senior React Developer",
-  "summary": "Software engineer with 6 years of experience.",
-  "location": "Amsterdam",
-  "salaryMin": 5500,
-  "salaryMax": 6500,
-  "currency": "EUR",
-  "remotePreference": "HYBRID"
-}
-```
-
-Not every field in this example is necessarily implemented.
-
-The actual backend DTO and response structure remain authoritative for the current implementation.
-
-## Migration Direction
-
-The intended API migration is:
-
-```text
-Current:
-
-/api/v1/users/me/candidate
-
-        ↓
-
-Canonical:
-
-/api/v1/candidates/me
-/api/v1/candidates
-```
-
-The current routes should not be considered part of the canonical long-term API.
-
-No backend implementation change is part of this documentation ticket.
-
-
-Candidate functionality belongs to the Candidate domain rather than the canonical Users domain.
-
-## Canonical Candidate API
-
-Target endpoints:
-
-```text
-GET /api/v1/candidates/me
-POST /api/v1/candidates
-PATCH /api/v1/candidates/me
-```
-
-**Status:** 🔵 Planned / Roadmap unless confirmed by the backend implementation.
-
-Example profile payload:
-
-```json
-{
-  "headline": "Senior React Developer",
-  "summary": "Software engineer with 6 years of experience.",
-  "location": "Amsterdam",
-  "salaryMin": 5500,
-  "salaryMax": 6500,
-  "currency": "EUR",
-  "remotePreference": "HYBRID"
-}
-```
-
-Not every field in this example is necessarily implemented.
-
-The actual DTO/schema is authoritative.
-
-## Legacy / Current User-Candidate Routes
-
-The following routes may exist in the current backend implementation:
-
-```text
-GET /api/v1/users/me/candidate
-POST /api/v1/users/me/candidate
-```
-
-These routes are not part of the canonical target Candidate API.
-
-If they exist in the current backend, they represent the current implementation state and should be treated as migration/refactoring candidates for the future Candidate domain.
-
-They must not be interpreted as the canonical long-term Candidate route structure.
+Returns the candidate profile belonging to the authenticated user.
 
 ---
 
-# 19. Candidate Skills
-
-Candidate Skills belongs to the Candidate domain and is separate from the canonical Users API.
-
-## Canonical Candidate Skills API
-
-Target endpoints:
+## Create Candidate Profile
 
 ```text
-GET /api/v1/candidates/me/skills
-POST /api/v1/candidates/me/skills
-PATCH /api/v1/candidates/me/skills/:id
-DELETE /api/v1/candidates/me/skills/:id
+POST /api/v1/candidates
 ```
 
-**Status:** 🔵 Planned / Roadmap unless confirmed by the backend implementation.
+Creates a candidate profile for the authenticated user.
 
-Example:
+The user relationship is derived from the authenticated request.
 
-```json
-{
-  "skillId": "...",
-  "proficiencyLevel": 4,
-  "yearsOfExperience": 5
-}
-```
-
-## Legacy / Current User-Skills Routes
-
-The following routes may exist in the current backend implementation:
-
-```text
-GET /api/v1/users/me/skills
-POST /api/v1/users/me/skills
-PATCH /api/v1/users/me/skills/:skillId
-DELETE /api/v1/users/me/skills/:skillId
-```
-
-These routes are not part of the canonical target Candidate Skills API.
-
-If they exist in the current backend, they represent the current implementation state and should be treated as migration/refactoring candidates.
+The client does not provide the user ID.
 
 ---
 
-# 20. Candidate Discovery
-
-**Status:** 🔵 Planned / Roadmap
-
-Target:
+## Update Candidate Profile
 
 ```text
-GET /api/v1/candidates
+PATCH /api/v1/candidates/me
 ```
 
-Potential filters:
+Updates the candidate profile belonging to the authenticated user.
+
+Candidate profile data includes fields such as:
 
 ```text
-skill
+headline
+summary
 location
-experience
-page
-limit
+salaryMin
+salaryMax
+currency
+availabilityDate
+remotePreference
 ```
 
-Example:
-
-```text
-GET /api/v1/candidates
-  ?skill=react
-  &location=Amsterdam
-  &page=1
-  &limit=20
-```
-
-Candidate discovery requires recruiter/company authorization and privacy controls.
+The exact request fields are defined by the current Candidate DTO.
 
 ---
 
-# 21. Candidate Detail
+# 11. Recruiter API
 
-**Status:** 🔵 Planned / Roadmap
+Recruiter functionality is exposed through the Recruiters resource.
 
-Target:
+## Get My Recruiter Profile
 
 ```text
-GET /api/v1/candidates/:id
+GET /api/v1/recruiters/me
 ```
 
-The returned information must depend on the authenticated user's permissions.
+Authentication required.
 
-Private candidate information must not automatically be exposed.
+Returns the recruiter profile belonging to the authenticated user.
 
 ---
 
-# 22. Company
+## Update My Recruiter Profile
 
-**Status:** ✅ Implemented
+```text
+PATCH /api/v1/recruiters/me
+```
 
-The Company domain is currently implemented for authenticated recruiters.
+Authentication required.
 
-## Implemented Endpoints
+Updates the authenticated recruiter's profile.
 
-| Method | Endpoint               | Purpose                                                       |
-| ------ | ---------------------- | ------------------------------------------------------------- |
-| POST   | `/api/v1/companies`    | Create a company and assign it to the authenticated recruiter |
-| GET    | `/api/v1/companies/me` | Get the authenticated recruiter's company                     |
-| PATCH  | `/api/v1/companies/me` | Update the authenticated recruiter's company                  |
+Recruiter data includes the recruiter's company relationship and optional job title.
+
+---
+
+# 12. Company API
+
+Companies are managed through the authenticated recruiter context.
 
 ## Create Company
-
-**Status:** ✅ Implemented
 
 ```text
 POST /api/v1/companies
 ```
 
-Authentication is required.
+Authentication required.
 
-Only authenticated recruiters can create a company.
+Creates a company and assigns it to the authenticated recruiter.
 
-When a company is created, it is automatically assigned to the authenticated recruiter. The client does not provide the recruiter ID or user ID for this relationship.
+The client does not provide:
 
-A recruiter can be assigned to at most one company. If the recruiter is already assigned to a company, the request is rejected.
+```text
+userId
+recruiterId
+```
 
-Example request:
+The backend derives the relationship from the authenticated user.
+
+Example:
 
 ```json
 {
@@ -737,149 +421,171 @@ Example request:
 }
 ```
 
-The backend generates a unique slug for the company.
+The backend generates a unique company slug.
 
-Expected status codes:
+A recruiter can only be assigned to one company.
 
-```text
-201 Created
-401 Unauthorized
-403 Forbidden
-409 Conflict
-```
+---
 
 ## Get My Company
-
-**Status:** ✅ Implemented
 
 ```text
 GET /api/v1/companies/me
 ```
 
-Authentication is required.
+Authentication required.
 
-The endpoint returns the company assigned to the authenticated recruiter.
+Returns the company associated with the authenticated recruiter.
 
-If the authenticated recruiter is not assigned to a company, the backend returns:
+If the recruiter is not assigned to a company:
 
 ```text
 404 Not Found
 ```
 
-The company is resolved from the authenticated recruiter context. The client does not provide a `companyId`.
+---
 
 ## Update My Company
-
-**Status:** ✅ Implemented
 
 ```text
 PATCH /api/v1/companies/me
 ```
 
-Authentication is required.
+Authentication required.
 
-The endpoint allows an authenticated recruiter to update their own company.
+Updates the company associated with the authenticated recruiter.
 
-Example request:
+Example:
 
 ```json
 {
-  "name": "Updated Company Name",
-  "description": "Updated company description"
+  "name": "Updated Company",
+  "description": "Updated description"
 }
 ```
 
-The backend derives the company from the authenticated recruiter context. The client does not provide a `companyId`.
+The client does not provide a `companyId`.
 
-## Company Ownership and Isolation
-
-**Status:** ✅ Implemented
-
-Company access is scoped to the authenticated recruiter.
-
-A recruiter can only retrieve and update the company assigned to that recruiter through the `/companies/me` endpoints.
-
-The backend must not rely on client-provided identifiers to determine company ownership.
-
-Ownership isolation is covered by the E2E test suite.
+---
 
 ## Company Deletion
 
-**Status:** ✅ Not Implemented by Design
+The current API does not expose a company deletion endpoint.
 
-The current API does not expose a Company DELETE endpoint.
-
-The following endpoints are intentionally not available:
+There is no:
 
 ```text
 DELETE /api/v1/companies/me
 DELETE /api/v1/companies/:id
 ```
 
-Company deletion is therefore outside the current Company API scope.
+---
 
+# 13. Skills API
 
-**Status:** 🔵 Planned / Roadmap
+Skills are shared platform resources.
 
-Target endpoints:
+The Skills API is protected by authentication.
+
+## List Skills
 
 ```text
-GET /api/v1/companies/:id
-PATCH /api/v1/companies/me
+GET /api/v1/skills
 ```
 
-Company authorization will be required.
+Supports the query parameters defined by `GetSkillsDto`.
 
-Company functionality is not currently part of the implemented MVP foundation.
+The endpoint is used by the frontend for skill selection and management.
 
 ---
 
-# 23. Recruiter Profile
-
-**Status:** 🔵 Planned / Roadmap
-
-Target:
+## Get Skill
 
 ```text
-GET /api/v1/recruiters/me
-PATCH /api/v1/recruiters/me
+GET /api/v1/skills/:id
 ```
 
-Recruiter functionality depends on the Company/Recruiter domain implementation.
+Returns a specific skill.
+
+The ID is validated as a UUID.
 
 ---
-# 24. Jobs
 
-**Status:** ✅ Implemented
+## Create Skill
 
-The Jobs domain is currently implemented for authenticated recruiters.
+```text
+POST /api/v1/skills
+```
 
-Jobs are scoped to the company assigned to the authenticated recruiter. The client does not provide a `companyId` or `createdByRecruiterId`; these relationships are derived from the authenticated recruiter context.
+Admin access required.
 
-## Implemented Endpoints
+Creates a platform skill.
 
-| Method | Endpoint              | Purpose                                                     |
-| ------ | --------------------- | ----------------------------------------------------------- |
-| POST   | `/api/v1/jobs`        | Create a new draft job                                      |
-| GET    | `/api/v1/jobs`        | Get jobs belonging to the authenticated recruiter's company |
-| GET    | `/api/v1/jobs/:jobId` | Get a specific job                                          |
-| PATCH  | `/api/v1/jobs/:jobId` | Update an existing job                                      |
+---
 
-All Jobs endpoints require authentication.
+## Update Skill
 
-Only recruiters can access the Jobs API.
+```text
+PATCH /api/v1/skills/:id
+```
+
+Admin access required.
+
+Updates a platform skill.
+
+---
+
+## Delete Skill
+
+```text
+DELETE /api/v1/skills/:id
+```
+
+Admin access required.
+
+Deletes a platform skill.
+
+---
+
+# 14. Job API
+
+Jobs are managed through the Jobs resource.
+
+The Jobs API supports both:
+
+* recruiter job management;
+* candidate job discovery.
+
+Authentication is required.
+
+---
 
 ## Create Job
-
-**Status:** ✅ Implemented
 
 ```text
 POST /api/v1/jobs
 ```
 
-The authenticated recruiter must be assigned to a company.
+Creates a new job for the authenticated recruiter's company.
 
-Example request:
+The backend derives:
+
+```text
+companyId
+createdByRecruiterId
+```
+
+from the authenticated recruiter.
+
+The client does not provide these ownership fields.
+
+A newly created job starts with:
+
+```text
+DRAFT
+```
+
+Example:
 
 ```json
 {
@@ -900,197 +606,180 @@ Example request:
 }
 ```
 
-A newly created job always starts with:
-
-```text
-status = DRAFT
-```
-
-The backend automatically assigns:
-
-```text
-companyId
-createdByRecruiterId
-```
-
-from the authenticated recruiter.
-
-The client must not provide these ownership fields.
-
-Validation includes:
-
-* title length;
-* description length;
-* employment type;
-* work mode;
-* salary values;
-* salary range;
-* expiration date;
-* referenced skill IDs;
-* duplicate required skills;
-* duplicate preferred skills;
-* overlap between required and preferred skills.
-
-Expected status codes include:
-
-```text
-201 Created
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-```
+---
 
 ## Get Jobs
-
-**Status:** ✅ Implemented
 
 ```text
 GET /api/v1/jobs
 ```
 
-The endpoint returns jobs belonging to the authenticated recruiter's company.
+The response depends on the authenticated user's role.
 
-Jobs are ordered by creation date, newest first.
+### Recruiter
 
-The response includes job requirements and their associated skills.
+Recruiters receive jobs belonging to their company.
 
-A recruiter cannot retrieve jobs belonging to another company.
+### Candidate
+
+Candidates receive available published jobs through the job discovery functionality.
+
+Candidate discovery supports:
+
+* text search;
+* location;
+* work mode;
+* employment type;
+* salary range;
+* skills;
+* sorting;
+* pagination.
+
+---
 
 ## Get Job
-
-**Status:** ✅ Implemented
 
 ```text
 GET /api/v1/jobs/:jobId
 ```
 
-The endpoint returns a job only when the job belongs to the authenticated recruiter's company.
+The response depends on the authenticated user's role.
 
-If the job does not exist or belongs to another company:
+### Recruiter
 
-```text
-404 Not Found
-```
+The recruiter can retrieve a job belonging to their company.
+
+### Candidate
+
+The candidate receives an available published job.
+
+Unavailable jobs such as draft, paused, closed, archived or expired jobs are not exposed through candidate discovery.
+
+---
 
 ## Update Job
-
-**Status:** ✅ Implemented
 
 ```text
 PATCH /api/v1/jobs/:jobId
 ```
 
-The endpoint allows the authenticated recruiter to update a job belonging to their company.
-
-The backend validates the resulting salary range when either salary value is changed.
-
-Required and preferred skill arrays can also be supplied to replace the complete job requirement configuration.
+Updates a job belonging to the authenticated recruiter's company.
 
 The backend validates:
 
+* job ownership;
+* job fields;
+* employment type;
+* work mode;
+* salary values;
+* salary range;
+* expiration data;
+* referenced skills;
 * duplicate skills;
-* required/preferred overlap;
-* referenced skill existence;
-* resulting salary range.
-
-Company ownership is enforced by the backend.
+* required/preferred skill overlap.
 
 ---
 
-# 25. Job Publishing
+# 15. Job Status
 
-**Status:** ✅ Implemented
-
-The Jobs API supports publishing draft jobs.
-
-## Publish Job
+Jobs use the following status values:
 
 ```text
-POST /api/v1/jobs/:jobId/publish
+DRAFT
+PUBLISHED
+PAUSED
+CLOSED
+ARCHIVED
 ```
 
-Only the authenticated recruiter belonging to the job's company can publish the job.
-
-A job can only be published when its current status is:
+A newly created job starts as:
 
 ```text
 DRAFT
 ```
 
-When successfully published:
+---
+
+# 16. Publish Job
+
+```text
+POST /api/v1/jobs/:jobId/publish
+```
+
+Publishes a draft job.
+
+The authenticated recruiter must belong to the company that owns the job.
+
+A job can be published when its current status is:
+
+```text
+DRAFT
+```
+
+After publishing:
 
 ```text
 status = PUBLISHED
 publishedAt = current timestamp
 ```
 
-A job that is already published cannot be published again.
-
-Expected status codes include:
-
-```text
-201 Created
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-```
-
-The backend is responsible for validating the current job state before publishing.
-
 ---
 
-# 26. Job Closing
-
-**Status:** ✅ Implemented
-
-The Jobs API supports closing published jobs.
-
-## Close Job
+# 17. Close Job
 
 ```text
 POST /api/v1/jobs/:jobId/close
 ```
 
-Only the authenticated recruiter belonging to the job's company can close the job.
+Closes a published job.
 
-A job can only be closed when its current status is:
+The authenticated recruiter must belong to the company that owns the job.
+
+A job can be closed when its current status is:
 
 ```text
 PUBLISHED
 ```
 
-When successfully closed:
+After closing:
 
 ```text
 status = CLOSED
 ```
 
-A job that is already closed cannot be closed again.
+---
 
-Expected status codes include:
+# 18. Job Discovery
+
+Candidate job discovery is available through:
 
 ```text
-201 Created
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
+GET /api/v1/jobs
 ```
 
-The backend enforces company ownership and job status transitions.
+The discovery API supports the filters represented by `GetJobsQueryDto`.
 
-The current Jobs API does not expose a separate job deletion endpoint.
+Current discovery functionality includes:
+
+* keyword search;
+* location;
+* work mode;
+* employment type;
+* minimum salary;
+* maximum salary;
+* skills;
+* sorting;
+* pagination.
+
+The frontend uses this API to provide the candidate job search experience.
 
 ---
 
-# 27. Job Requirements
+# 19. Job Requirements API
 
-**Status:** ✅ Implemented
+Job requirements connect jobs with platform skills.
 
-Job Requirements are implemented as a separate domain resource associated with a Job and a Skill.
-
-Each job requirement contains:
+Each requirement contains:
 
 ```text
 skillId
@@ -1098,25 +787,31 @@ required
 minimumLevel
 ```
 
-The database also supports an optional `weight` field, although the current Jobs API does not expose weight through the requirement DTOs.
+The database also supports an optional:
 
-## Implemented Endpoints
+```text
+weight
+```
 
-| Method | Endpoint                                          | Purpose                        |
-| ------ | ------------------------------------------------- | ------------------------------ |
-| GET    | `/api/v1/jobs/:jobId/requirements`                | Get all requirements for a job |
-| POST   | `/api/v1/jobs/:jobId/requirements`                | Add one requirement            |
-| PATCH  | `/api/v1/jobs/:jobId/requirements/:requirementId` | Update one requirement         |
-| PATCH  | `/api/v1/jobs/:jobId/requirements`                | Replace all requirements       |
-| DELETE | `/api/v1/jobs/:jobId/requirements/:skillId`       | Remove one requirement         |
+field.
 
-All requirement operations require authentication and recruiter authorization.
+---
 
-The job must belong to the authenticated recruiter's company.
+## Get Requirements
 
-## Create Job Requirement
+```text
+GET /api/v1/jobs/:jobId/requirements
+```
 
-**Status:** ✅ Implemented
+Returns the requirements belonging to the job.
+
+Requirements include their associated skills.
+
+Required skills are returned before preferred skills.
+
+---
+
+## Create Requirement
 
 ```text
 POST /api/v1/jobs/:jobId/requirements
@@ -1134,32 +829,16 @@ Example:
 
 Validation includes:
 
-* valid UUID for `skillId`;
-* `required` must be boolean;
-* `minimumLevel` must be an integer;
-* `minimumLevel` must be at least `1`;
-* the referenced skill must exist;
-* the skill cannot already be assigned to the job.
+* valid UUID;
+* valid boolean `required`;
+* integer `minimumLevel`;
+* minimum level of 1;
+* existing skill;
+* no duplicate skill for the job.
 
-## Get Job Requirements
+---
 
-**Status:** ✅ Implemented
-
-```text
-GET /api/v1/jobs/:jobId/requirements
-```
-
-The endpoint returns all requirements for the specified job.
-
-Requirements are returned with their associated Skill records.
-
-Required skills are listed before preferred skills.
-
-Within the same requirement type, skills are ordered alphabetically by skill name.
-
-## Update Job Requirement
-
-**Status:** ✅ Implemented
+## Update Requirement
 
 ```text
 PATCH /api/v1/jobs/:jobId/requirements/:requirementId
@@ -1174,17 +853,17 @@ Example:
 }
 ```
 
-Both fields are optional.
+Updates an individual job requirement.
 
-The backend validates the updated requirement and ensures that the requirement belongs to the specified job.
+---
 
-## Replace All Job Requirements
-
-**Status:** ✅ Implemented
+## Replace Requirements
 
 ```text
 PATCH /api/v1/jobs/:jobId/requirements
 ```
+
+Replaces the complete requirement configuration.
 
 Example:
 
@@ -1199,687 +878,647 @@ Example:
 }
 ```
 
-The supplied arrays replace the complete existing requirement configuration.
+The backend validates:
 
-A skill cannot appear more than once within an array and cannot be both required and preferred.
+* referenced skills;
+* duplicate skills;
+* required/preferred overlap.
 
-All referenced skills must exist.
+The replacement is performed transactionally.
 
-The replacement operation is performed transactionally so that the requirement set is replaced consistently.
+---
 
-## Remove Job Requirement
-
-**Status:** ✅ Implemented
+## Remove Requirement
 
 ```text
 DELETE /api/v1/jobs/:jobId/requirements/:skillId
 ```
 
-The endpoint removes the requirement associated with the specified skill.
+Removes the requirement associated with the specified skill.
 
-If the requirement does not exist:
+---
 
-```text
-404 Not Found
-```
+# 20. Applications API
 
-## Job Requirement Ownership
+Applications are part of the current platform.
 
-Job requirements are always accessed through their parent Job.
+A candidate can apply to a job and manage their applications.
 
-The backend first verifies that the Job belongs to the authenticated recruiter's company.
+Recruiters can review applications belonging to their company.
 
-This prevents a recruiter from reading or modifying requirements belonging to another company's job.
+---
 
-## Job Requirement Model
-
-The current database model is:
+## Create Application
 
 ```text
-Job
- │
- └── JobRequirement
-       │
-       └── Skill
+POST /api/v1/jobs/:jobId/applications
 ```
 
-A job cannot contain the same skill more than once because the database enforces:
+Creates an application for the authenticated candidate.
 
-```text
-unique(jobId, skillId)
-```
-
-The current API therefore supports both:
-
-```text
-required skill
-```
-
-and:
-
-```text
-preferred skill
-```
-
-through the `required` property.
-
-
-# 28. Skills
-
-**Status:** ✅ Implemented
-
-The Skills domain is part of the current backend foundation.
-
-Target endpoint:
-
-```text
-GET /api/v1/skills
-```
-
-Potential search:
-
-```text
-GET /api/v1/skills?search=react
-```
-
-Example response:
+Example:
 
 ```json
 {
-  "data": [
-    {
-      "id": "...",
-      "name": "React",
-      "slug": "react",
-      "category": "FRONTEND"
-    }
-  ]
+  "coverLetter": "I am interested in this position because..."
 }
 ```
 
-The actual endpoint path, query parameters and response structure must match the implemented controller.
+The candidate relationship is derived from the authenticated user.
 
 ---
 
-# 29. Skill Creation
-
-**Status:** 🟡 Foundation / Partial
-
-Target:
+## List Candidate Applications
 
 ```text
-POST /api/v1/skills
+GET /api/v1/applications
 ```
 
-Skill creation should be restricted to authorized platform functionality.
-
-Candidates should not be able to arbitrarily create global platform skills.
-
-The exact authorization rules must match the current implementation.
+Returns applications belonging to the authenticated candidate.
 
 ---
 
-# 30. Matching
-
-**Status:** 🔵 Planned / Roadmap
-
-Matching is a core future domain.
-
-Target:
+## Get Candidate Application
 
 ```text
-POST /api/v1/jobs/:id/match
+GET /api/v1/applications/:applicationId
 ```
 
-Conceptually:
-
-```text
-Job
- ↓
-Requirements
- ↓
-Candidate pool
- ↓
-Skill comparison
- ↓
-Experience
- ↓
-Location
- ↓
-Salary
- ↓
-Availability
- ↓
-Preferences
- ↓
-Score
-```
-
-The matching engine is not currently considered implemented merely because this endpoint is documented.
+Returns an application belonging to the authenticated candidate.
 
 ---
 
-# 31. Job Matches
-
-**Status:** 🔵 Planned / Roadmap
-
-Target:
+## Withdraw Application
 
 ```text
-GET /api/v1/jobs/:id/matches
+PATCH /api/v1/applications/:applicationId/withdraw
 ```
 
-Potential query:
+Withdraws an application belonging to the authenticated candidate.
+
+---
+
+# 21. Recruiter Applications
+
+Recruiters have a separate application view.
+
+## List Recruiter Applications
 
 ```text
-?minScore=70&page=1&limit=20
+GET /api/v1/recruiter/applications
 ```
 
-Target response:
+Returns applications associated with jobs belonging to the authenticated recruiter's company.
 
-```json
-{
-  "data": [
-    {
-      "id": "...",
-      "candidateId": "...",
-      "overallScore": 91,
-      "skillScore": 95,
-      "experienceScore": 90,
-      "locationScore": 100
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 12,
-    "totalPages": 1
-  }
-}
+---
+
+## Get Recruiter Application
+
+```text
+GET /api/v1/recruiter/applications/:applicationId
+```
+
+Returns an application that belongs to the recruiter's company.
+
+---
+
+## Update Application Status
+
+```text
+PATCH /api/v1/recruiter/applications/:applicationId/status
+```
+
+Updates the application status.
+
+Supported application statuses are:
+
+```text
+PENDING
+REVIEWING
+ACCEPTED
+REJECTED
+WITHDRAWN
 ```
 
 ---
 
-# 32. Match Detail
+# 22. Application Ownership
 
-**Status:** 🔵 Planned / Roadmap
+Application access is controlled by the authenticated user.
 
-Target:
+Candidates can access their own applications.
+
+Recruiters can access applications belonging to their company's jobs.
+
+The client does not provide ownership information such as:
 
 ```text
-GET /api/v1/matches/:id
+candidateId
+companyId
 ```
 
-The response should eventually contain:
+for determining access.
 
-* overall score;
-* component scores;
-* strengths;
-* gaps;
-* relevant candidate information;
-* relevant job information.
+The backend derives ownership from the authenticated user and related domain records.
 
 ---
 
-# 33. Match Explanation
+# 23. Candidate Skills
 
-**Status:** 🔵 Planned / Roadmap
+Candidate skills are represented in the database through the `CandidateSkill` relation.
 
-Target structure:
+The current Prisma model supports:
 
-```json
-{
-  "overallScore": 91,
-  "scores": {
-    "skills": 95,
-    "experience": 90,
-    "location": 100,
-    "salary": 85,
-    "availability": 100,
-    "preferences": 80
-  },
-  "strengths": [
-    "React",
-    "TypeScript",
-    "AWS"
-  ],
-  "gaps": [
-    "Kubernetes"
-  ]
-}
+```text
+candidateId
+skillId
+proficiencyLevel
+yearsOfExperience
+source
+confidence
+verified
 ```
 
-The explanation must be generated from actual matching data.
+The database also enforces a unique candidate/skill relationship.
 
-AI may assist with natural-language presentation, but must not invent match reasons.
+Candidate skill API operations should only be documented when exposed by the current backend controller.
 
 ---
 
-# 34. CV Upload
+# 24. Matching
 
-**Status:** 🔵 Planned / Roadmap
+The current database contains a `Match` model for candidate/job matching data.
 
-Potential future endpoint:
+The current API specification does not expose a matching controller or matching endpoint.
+
+Therefore this document does not define a public matching endpoint.
+
+The current platform API should not assume that a Match API is available.
+
+---
+
+# 25. CV and AI Processing
+
+The current API does not expose CV upload, CV analysis or AI job-analysis endpoints.
+
+Therefore the following are not part of the current API contract:
 
 ```text
 POST /api/v1/candidates/me/documents
-```
-
-Possible upload mechanism:
-
-```text
-Frontend
-   ↓
-Backend requests upload URL
-   ↓
-Object Storage
-   ↓
-Backend receives metadata
-   ↓
-AI processing
-```
-
-No CV upload API should be considered implemented until the corresponding backend functionality exists.
-
----
-
-# 35. AI Processing
-
-**Status:** 🔵 Planned / Roadmap
-
-AI providers should not be exposed directly to the frontend.
-
-Instead, the backend should expose domain-level operations.
-
-Example:
-
-```text
 POST /api/v1/candidates/me/analyze-cv
-```
-
-Conceptually:
-
-```text
-CV
- ↓
-Candidate Processing Service
- ↓
-AI Provider
- ↓
-Structured CandidateSkill
-```
-
-AI credentials remain backend-only.
-
----
-
-# 36. AI Job Analysis
-
-**Status:** 🔵 Planned / Roadmap
-
-Potential endpoint:
-
-```text
 POST /api/v1/jobs/:id/analyze
 ```
 
-The backend may:
-
-* read the job description;
-* send appropriate content to the AI provider;
-* extract skills;
-* normalize skills;
-* create/update JobRequirements;
-* return structured results.
-
-This functionality is not currently part of the implemented API.
-
 ---
 
-# 37. Idempotency
+# 26. Dashboard API
 
-**Status:** 🔵 Planned
+The platform provides role-specific dashboard endpoints.
 
-Idempotency may eventually be required for retry-sensitive operations such as:
-
-* AI processing;
-* document processing;
-* bulk matching;
-* payments.
-
-It should be introduced when a concrete operation requires it.
-
----
-
-# 38. Rate Limiting
-
-**Status:** 🔵 Security / Implementation Requirement
-
-The API should implement rate limiting.
-
-Particularly sensitive endpoints include:
+## Candidate Dashboard
 
 ```text
-POST /auth/login
-POST /auth/register
-POST /jobs/:id/match
-POST /candidates/me/analyze-cv
-POST /jobs/:id/analyze
+GET /api/v1/candidates/me/dashboard
 ```
 
-Exact limits depend on the actual implementation and deployment environment.
+Candidate authorization is required.
+
+Returns dashboard information for the authenticated candidate.
+
+The dashboard supports the candidate experience including profile, applications, jobs and related overview information.
 
 ---
 
-# 39. API Security
-
-Production API traffic must use HTTPS.
-
-The backend must validate:
-
-* authentication;
-* authorization;
-* input;
-* query parameters;
-* resource ownership;
-* file type and size where file uploads exist.
-
-The backend must never trust client-provided:
+## Recruiter Dashboard
 
 ```text
-companyId
-candidateId
-userId
-role
-permissions
+GET /api/v1/recruiters/me/dashboard
 ```
 
-where these values can be derived from authenticated context.
+Recruiter authorization is required.
+
+Returns dashboard information for the authenticated recruiter.
+
+The dashboard provides recruiter-specific overview information such as company, jobs and applications.
 
 ---
 
-# 40. API Validation
+# 27. Health API
 
-**Status:** 🟡 Foundation / Partial
-
-NestJS DTO validation should be used for incoming requests.
-
-Examples of future DTOs:
-
-```text
-CreateJobDto
-UpdateCandidateDto
-CreateSkillDto
-CreateJobRequirementDto
-```
-
-Validation must happen before business logic.
-
-Only DTOs that actually exist in the backend should be considered implemented.
-
----
-
-# 41. API DTO Strategy
-
-Database entities must not automatically become API responses.
-
-Target flow:
-
-```text
-Prisma Entity
-       ↓
-Response DTO
-       ↓
-Frontend
-```
-
-This prevents accidental exposure of:
-
-* password hashes;
-* internal fields;
-* private metadata;
-* database implementation details.
-
----
-
-# 42. API Documentation
-
-**Status:** 🔵 Planned / Development Requirement
-
-The backend should expose OpenAPI/Swagger documentation.
-
-Target development endpoint:
-
-```text
-/api/docs
-```
-
-The exact route depends on the NestJS configuration.
-
-OpenAPI should eventually become the primary machine-readable API contract for frontend development.
-
----
-
-# 43. Frontend API Client
-
-**Status:** 🟡 Foundation / Partial
-
-The frontend should communicate through a centralized API layer.
-
-Target structure:
-
-```text
-lib/api/
-
-├── client.ts
-├── auth.ts
-├── jobs.ts
-├── candidates.ts
-├── skills.ts
-└── matches.ts
-```
-
-Components should not duplicate raw API logic throughout the application.
-
----
-
-# 44. API Error Handling in Frontend
-
-The frontend should map backend errors to appropriate UI states.
-
-| HTTP | Frontend behavior        |
-| ---- | ------------------------ |
-| 401  | Login/session handling   |
-| 403  | Permission message       |
-| 404  | Not found                |
-| 422  | Form validation          |
-| 429  | Retry/rate-limit message |
-| 500  | Generic server error     |
-
-The exact implementation depends on the current frontend API client.
-
----
-
-# 45. API Evolution
-
-Non-breaking changes may be introduced within `/v1`.
-
-Breaking changes require a new API version.
-
-Example:
-
-```text
-/api/v1
-/api/v2
-```
-
-The MVP should avoid unnecessary breaking changes.
-
----
-
-# 46. Current API Scope
-
-## Implemented / Foundation
-
-* Authentication
-* Users
-* Skills
-* Initial Candidate/profile functionality
-
-## Partial / Foundation
-
-* Role-based access foundation
-* Candidate domain
-* API validation
-* Frontend/backend API communication
-
-## Planned
-
-* Companies
-* Recruiters
-* Candidate Skills
-* Candidate Discovery
-* Jobs
-* Job Requirements
-* Matching
-* Match explanations
-* CV processing
-* AI CV analysis
-* AI Job analysis
-
-The exact implementation status must always be verified against the backend source of truth.
-
----
-
-# 47. Target MVP API Scope
-
-The target MVP API is intended to support:
-
-```text
-Authentication
-        ↓
-Users
-        ↓
-Candidates
-        ↓
-Candidate Skills
-        ↓
-Companies
-        ↓
-Recruiters
-        ↓
-Jobs
-        ↓
-Job Requirements
-        ↓
-Matching
-        ↓
-CV / AI processing
-```
-
-This is the target architecture, not a statement that every component is currently implemented.
-
----
-
-# 48. API Implementation Order
-
-The target implementation order is:
-
-1. Health check
-2. Database connection
-3. Authentication
-4. Users
-5. Companies
-6. Recruiters
-7. Candidates
-8. Skills
-9. Candidate Skills
-10. Jobs
-11. Job Requirements
-12. Matching
-13. CV processing
-14. AI integration
-
-Actual implementation order may differ where existing code already provides functionality.
-
----
-
-# 49. Health Check
-
-**Status:** 🟡 Verify against implementation
-
-Target:
+The backend provides a health endpoint.
 
 ```text
 GET /api/v1/health
 ```
 
-Example:
+The endpoint checks the backend database connection.
+
+Example response:
 
 ```json
 {
-  "status": "ok"
+  "status": "ok",
+  "service": "it-talent-backend",
+  "database": "ok"
 }
 ```
 
-A health endpoint should eventually support deployment and monitoring.
-
-The exact route must match the backend implementation.
-
 ---
 
-# 50. API Definition of Done
+# 28. Swagger / OpenAPI
 
-An endpoint is considered implemented when:
-
-* request schema is defined;
-* authentication requirements are defined;
-* authorization requirements are defined;
-* validation is implemented;
-* response schema is defined;
-* error behavior is defined;
-* automated tests exist;
-* OpenAPI documentation exists where appropriate.
-
-Documentation alone does not make an endpoint implemented.
-
----
-
-# 51. Source of Truth
-
-For API implementation, the following hierarchy applies:
+The backend exposes Swagger documentation.
 
 ```text
-1. NestJS controllers
-        ↓
-2. DTOs
-        ↓
-3. Services / Guards
-        ↓
-4. Automated tests
-        ↓
-5. OpenAPI/Swagger
-        ↓
-6. api.md
+/api/docs
 ```
 
-If `api.md` differs from the actual backend implementation, the discrepancy must be identified and corrected.
+The Swagger document is generated directly from the NestJS application.
 
-The documentation must not describe roadmap functionality as implemented functionality.
+The current API uses bearer authentication in Swagger:
 
-For the canonical target contract, intentional architectural decisions documented through the project change process may define the desired future API shape. Such target definitions must remain clearly distinguished from the current backend implementation.
+```text
+access-token
+```
+
+Swagger therefore provides the machine-readable representation of the implemented controller contract.
 
 ---
 
-# 52. Document Status
+# 29. HTTP Status Codes
+
+The backend uses standard HTTP responses according to the operation.
+
+Common responses include:
+
+| Status | Meaning                            |
+| ------ | ---------------------------------- |
+| 200    | Successful request                 |
+| 201    | Resource created                   |
+| 400    | Invalid request or business rule   |
+| 401    | Authentication required or invalid |
+| 403    | Insufficient permissions           |
+| 404    | Resource not found                 |
+| 409    | Resource conflict                  |
+| 500    | Internal server error              |
+
+The exact status returned by each endpoint is defined by the implementation.
+
+---
+
+# 30. Authorization Model
+
+Authorization is enforced at the backend.
+
+Examples:
+
+```text
+Candidate
+    ↓
+Own candidate profile
+Own applications
+Candidate job discovery
+
+Recruiter
+    ↓
+Own recruiter profile
+Own company
+Own company jobs
+Own company applications
+
+Admin
+    ↓
+User management
+Skill management
+```
+
+Resource ownership is resolved from the authenticated user whenever possible.
+
+---
+
+# 31. Resource Ownership
+
+The API avoids relying on client-provided ownership identifiers when they can be derived from authentication.
+
+Examples include:
+
+```text
+companyId
+createdByRecruiterId
+candidateId
+```
+
+For example, when a recruiter creates a job:
+
+```text
+Authenticated User
+        ↓
+Recruiter
+        ↓
+Company
+        ↓
+Job
+```
+
+The backend derives the company and recruiter relationships.
+
+---
+
+# 32. Frontend API Usage
+
+The frontend communicates with the backend through HTTP API requests.
+
+Current frontend functionality uses the API for:
+
+* authentication;
+* user information;
+* candidate profiles;
+* recruiter profiles;
+* companies;
+* jobs;
+* job discovery;
+* job requirements;
+* applications;
+* skills;
+* dashboards.
+
+Frontend components should not access the database directly.
+
+---
+
+# 33. API and Database Separation
+
+The API contract is independent from the Prisma database representation.
+
+The backend follows the general flow:
+
+```text
+HTTP Request
+     ↓
+Controller
+     ↓
+DTO / Validation
+     ↓
+Guard / Authorization
+     ↓
+Service
+     ↓
+Prisma
+     ↓
+PostgreSQL
+     ↓
+Response
+```
+
+Database entities are not automatically exposed as public API contracts.
+
+---
+
+# 34. Error Handling
+
+The backend uses NestJS exception handling and validation.
+
+Invalid requests can result in validation or business-rule errors.
+
+The exact response structure is determined by the current NestJS implementation.
+
+The API documentation must therefore not assume a custom error format that is not implemented.
+
+---
+
+# 35. Pagination and Filtering
+
+Pagination, filtering and sorting are implemented where required by the current endpoint.
+
+The Jobs discovery endpoint supports:
+
+```text
+search
+location
+workMode
+employmentType
+salaryMin
+salaryMax
+skills
+sorting
+pagination
+```
+
+The exact query parameter names and response structure are defined by the corresponding DTOs and response DTOs.
+
+Other endpoints should only document pagination or filtering when implemented by their controller and DTOs.
+
+---
+
+# 36. API Security
+
+The backend applies authentication and authorization to protected resources.
+
+Security responsibilities include:
+
+* JWT authentication;
+* role authorization;
+* DTO validation;
+* UUID validation where applicable;
+* resource ownership checks;
+* protected company access;
+* protected job access;
+* protected application access.
+
+Database credentials and backend secrets remain backend-only.
+
+---
+
+# 37. Current API Resources
+
+The current API contains the following resource areas:
+
+| Resource         | Current functionality                          |
+| ---------------- | ---------------------------------------------- |
+| Authentication   | Register and login                             |
+| Users            | Current user and user administration           |
+| Candidates       | Candidate profile                              |
+| Recruiters       | Recruiter profile                              |
+| Companies        | Company creation and management                |
+| Skills           | Skill listing and administration               |
+| Jobs             | Creation, discovery, update, publish and close |
+| Job Requirements | Create, read, update, replace and remove       |
+| Applications     | Candidate and recruiter application management |
+| Dashboard        | Candidate and recruiter dashboards             |
+| Health           | Backend/database health check                  |
+
+---
+
+# 38. Current Endpoint Overview
+
+| Method | Endpoint                                               | Purpose                              |
+| ------ | ------------------------------------------------------ | ------------------------------------ |
+| POST   | `/api/v1/auth/register`                                | Register                             |
+| POST   | `/api/v1/auth/login`                                   | Login                                |
+| GET    | `/api/v1/users/me`                                     | Current user                         |
+| POST   | `/api/v1/users`                                        | Create user                          |
+| GET    | `/api/v1/users`                                        | List users                           |
+| GET    | `/api/v1/users/:id`                                    | Get user                             |
+| PATCH  | `/api/v1/users/:id`                                    | Update user                          |
+| DELETE | `/api/v1/users/:id`                                    | Delete user                          |
+| GET    | `/api/v1/candidates/me`                                | Get candidate profile                |
+| POST   | `/api/v1/candidates`                                   | Create candidate profile             |
+| PATCH  | `/api/v1/candidates/me`                                | Update candidate profile             |
+| GET    | `/api/v1/recruiters/me`                                | Get recruiter profile                |
+| PATCH  | `/api/v1/recruiters/me`                                | Update recruiter profile             |
+| POST   | `/api/v1/companies`                                    | Create company                       |
+| GET    | `/api/v1/companies/me`                                 | Get company                          |
+| PATCH  | `/api/v1/companies/me`                                 | Update company                       |
+| GET    | `/api/v1/skills`                                       | List skills                          |
+| GET    | `/api/v1/skills/:id`                                   | Get skill                            |
+| POST   | `/api/v1/skills`                                       | Create skill                         |
+| PATCH  | `/api/v1/skills/:id`                                   | Update skill                         |
+| DELETE | `/api/v1/skills/:id`                                   | Delete skill                         |
+| POST   | `/api/v1/jobs`                                         | Create job                           |
+| GET    | `/api/v1/jobs`                                         | Recruiter jobs / candidate discovery |
+| GET    | `/api/v1/jobs/:jobId`                                  | Get job                              |
+| PATCH  | `/api/v1/jobs/:jobId`                                  | Update job                           |
+| POST   | `/api/v1/jobs/:jobId/publish`                          | Publish job                          |
+| POST   | `/api/v1/jobs/:jobId/close`                            | Close job                            |
+| GET    | `/api/v1/jobs/:jobId/requirements`                     | Get requirements                     |
+| POST   | `/api/v1/jobs/:jobId/requirements`                     | Create requirement                   |
+| PATCH  | `/api/v1/jobs/:jobId/requirements/:requirementId`      | Update requirement                   |
+| PATCH  | `/api/v1/jobs/:jobId/requirements`                     | Replace requirements                 |
+| DELETE | `/api/v1/jobs/:jobId/requirements/:skillId`            | Remove requirement                   |
+| POST   | `/api/v1/jobs/:jobId/applications`                     | Apply to job                         |
+| GET    | `/api/v1/applications`                                 | Candidate applications               |
+| GET    | `/api/v1/applications/:applicationId`                  | Candidate application detail         |
+| PATCH  | `/api/v1/applications/:applicationId/withdraw`         | Withdraw application                 |
+| GET    | `/api/v1/recruiter/applications`                       | Recruiter applications               |
+| GET    | `/api/v1/recruiter/applications/:applicationId`        | Recruiter application detail         |
+| PATCH  | `/api/v1/recruiter/applications/:applicationId/status` | Update application status            |
+| GET    | `/api/v1/candidates/me/dashboard`                      | Candidate dashboard                  |
+| GET    | `/api/v1/recruiters/me/dashboard`                      | Recruiter dashboard                  |
+| GET    | `/api/v1/health`                                       | Health check                         |
+
+---
+
+# 39. API Flow
+
+The main platform API flows are:
+
+## Candidate
+
+```text
+Register / Login
+      ↓
+Candidate Profile
+      ↓
+Skills / Preferences
+      ↓
+Job Discovery
+      ↓
+Job Details
+      ↓
+Application
+      ↓
+Application Status
+```
+
+## Recruiter
+
+```text
+Register / Login
+      ↓
+Recruiter Profile
+      ↓
+Company
+      ↓
+Create Job
+      ↓
+Job Requirements
+      ↓
+Publish Job
+      ↓
+Applications
+      ↓
+Application Status
+```
+
+## Admin
+
+```text
+Login
+  ↓
+User Management
+  ↓
+Skill Management
+```
+
+---
+
+# 40. API Source of Truth
+
+For the current API, the implementation hierarchy is:
+
+```text
+NestJS Controllers
+        ↓
+DTOs
+        ↓
+Guards
+        ↓
+Services
+        ↓
+Automated Tests
+        ↓
+Swagger / OpenAPI
+        ↓
+api.md
+```
+
+`api.md` documents the current API but does not override the backend implementation.
+
+If an endpoint, request field, response field or authorization rule differs between this document and the backend, the backend implementation is authoritative.
+
+---
+
+# 41. Related Architecture
+
+The API is part of the following platform architecture:
+
+```text
+Frontend
+   ↓
+REST API
+   ↓
+NestJS Backend
+   ↓
+Prisma
+   ↓
+PostgreSQL
+```
+
+Related documentation:
+
+```text
+it-talent-docs/
+├── product/
+│   ├── vision.md
+│   ├── requirements.md
+│   └── roadmap.md
+│
+└── architecture/
+    ├── architecture.md
+    ├── database.md
+    ├── api.md
+    └── security.md
+```
+
+---
+
+# 42. Document Status
 
 **Document:** api.md
-**Version:** 0.2.0
-**Status:** Canonical API Contract Baseline
-**Last updated:** 2026-08-28
+**Version:** 0.3.0
+**Status:** Current API Specification
+**Last updated:** 2026-09-10
 
-This document distinguishes the current API implementation from the canonical target API architecture.
+This document describes the current REST API of the IT Talent Platform.
 
-The actual NestJS implementation remains the source of truth for current behavior.
-
-The canonical target contract defines the intended API direction for future refactoring and must not be interpreted as evidence that a planned endpoint is already implemented.
+The NestJS backend implementation, DTOs, guards, services, tests and generated Swagger/OpenAPI documentation remain the source of truth for API behavior.
