@@ -2,15 +2,35 @@
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE and editor
 .vscode/
 .idea/
 
 # Environment files
 .env
 .env.*
+!.env.example
 *.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Test and coverage output
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
 
 # Temporary files
 *.tmp
 *.temp
+
+# TypeScript
+*.tsbuildinfo
