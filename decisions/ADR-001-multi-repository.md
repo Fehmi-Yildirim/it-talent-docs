@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-08-12  
-**Updated:** 2026-09-10
+**Updated:** 2026-11-09
 
 ## Context
 
