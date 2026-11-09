@@ -1,90 +1,91 @@
 # IT Talent Platform — Database Architecture
 
-**Document:** `database.md`
-**Version:** `0.2.0`
-**Status:** Current Database Architecture
-**Last updated:** 2026-09-10
+**Document:** `database.md`  
+**Version:** `0.3.0`  
+**Status:** Current Database Architecture  
+**Last updated:** 2026-11-09
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the current database architecture of the IT Talent Platform.
+This document describes the database architecture of the IT Talent Platform.
 
-The database uses:
+The database provides the relational foundation for user accounts, candidate and recruiter profiles, companies, jobs, skills, matching data, and job applications.
 
-* PostgreSQL as the relational database;
-* Prisma ORM for database access;
-* UUIDs as primary identifiers;
-* foreign-key relationships for relational integrity;
-* indexes for frequently queried fields;
-* timestamps on persisted entities.
+The database architecture uses:
+
+- PostgreSQL as the relational database;
+- Prisma ORM for database access;
+- UUIDs as primary identifiers;
+- foreign-key relationships for relational integrity;
+- indexes and unique constraints for data integrity and query performance;
+- timestamps on persisted entities where applicable.
 
 The Prisma schema is the authoritative source for the implemented database model.
 
-Schema location:
+**Primary schema location:**
 
 ```text
 it-talent-backend/prisma/schema.prisma
 ```
 
----
-
-# 2. Database Technology
-
-| Area              | Technology                         |
-| ----------------- | ---------------------------------- |
-| Database          | PostgreSQL                         |
-| ORM               | Prisma                             |
-| Identifier type   | UUID                               |
-| Database access   | Backend application through Prisma |
-| Schema definition | `prisma/schema.prisma`             |
-| Migration system  | Prisma Migrate                     |
-
-The backend does not expose the database directly to the frontend.
+This document describes the database model. It does not imply that every database entity has a corresponding public API endpoint or frontend feature.
 
 ---
 
-# 3. Current Entity Model
+## 2. Database Technology
 
-The current Prisma schema contains the following entities:
+| Area | Technology |
+|---|---|
+| Database | PostgreSQL |
+| ORM | Prisma |
+| Identifier type | UUID |
+| Database access | Backend application through Prisma |
+| Schema definition | `prisma/schema.prisma` |
+| Migration system | Prisma Migrate |
 
-* User
-* Candidate
-* Recruiter
-* Company
-* Job
-* Skill
-* CandidateSkill
-* JobRequirement
-* Match
-* Application
+The backend is responsible for database access. The frontend communicates with the backend API and does not connect directly to PostgreSQL.
 
-The main relationships are:
+---
+
+## 3. Current Entity Model
+
+The documented Prisma domain model contains the following entities:
+
+- `User`
+- `Candidate`
+- `Recruiter`
+- `Company`
+- `Job`
+- `Skill`
+- `CandidateSkill`
+- `JobRequirement`
+- `Match`
+- `Application`
+
+The main domain relationships are:
 
 ```text
 User
- ├── Candidate
- │    ├── CandidateSkill ── Skill
- │    ├── Match ────────── Job
- │    └── Application ──── Job
- │
- └── Recruiter
-      ├── Company
-      └── Job
-
-Company
- └── Job
-      ├── JobRequirement ── Skill
-      ├── Match ────────── Candidate
-      └── Application ──── Candidate
+├── Candidate
+│   ├── CandidateSkill ── Skill
+│   ├── Match ─────────── Job
+│   └── Application ───── Job
+│
+└── Recruiter
+    └── Company
+        └── Job
+            ├── JobRequirement ── Skill
+            ├── Match ─────────── Candidate
+            └── Application ───── Candidate
 ```
 
-These relationships are implemented in the Prisma schema.
+The actual relationship cardinalities, optionality, foreign-key constraints, and deletion behavior are defined in `schema.prisma`.
 
 ---
 
-# 4. UUID Strategy
+## 4. UUID Strategy
 
 Primary identifiers use UUIDs.
 
@@ -94,7 +95,7 @@ Example:
 550e8400-e29b-41d4-a716-446655440000
 ```
 
-The Prisma schema defines UUID generation for the primary identifiers:
+The Prisma schema uses UUID identifiers in the following form:
 
 ```prisma
 id String @id @default(uuid()) @db.Uuid
@@ -102,9 +103,11 @@ id String @id @default(uuid()) @db.Uuid
 
 UUIDs provide globally unique identifiers and are used consistently across the main domain entities.
 
+The exact identifier definition for each model is determined by the Prisma schema.
+
 ---
 
-# 5. Timestamp Strategy
+## 5. Timestamp Strategy
 
 Persisted entities use timestamps where applicable:
 
@@ -113,14 +116,14 @@ createdAt
 updatedAt
 ```
 
-The database uses:
+The common Prisma definitions are:
 
-```text
-createdAt → @default(now())
-updatedAt → @updatedAt
+```prisma
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 ```
 
-Some domain entities also contain additional dates such as:
+Some domain entities also contain additional date fields, such as:
 
 ```text
 availabilityDate
@@ -129,15 +132,17 @@ expiresAt
 calculatedAt
 ```
 
-The exact fields are defined by the Prisma schema.
+Not every model necessarily contains every timestamp or date field. The Prisma schema defines the exact fields and defaults.
 
 ---
 
-# 6. User
+## 6. User
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 The `User` entity represents authentication identity and platform role information.
+
+Table:
 
 ```text
 users
@@ -153,13 +158,13 @@ updatedAt
 
 Properties:
 
-* `id` — UUID primary key
-* `email` — unique email address
-* `passwordHash` — stored password hash
-* `role` — platform role
-* `status` — account status
-* `createdAt`
-* `updatedAt`
+- `id` — UUID primary key;
+- `email` — unique email address;
+- `passwordHash` — stored password hash;
+- `role` — platform role;
+- `status` — account status;
+- `createdAt` — creation timestamp;
+- `updatedAt` — last update timestamp.
 
 Roles:
 
@@ -178,15 +183,19 @@ SUSPENDED
 DELETED
 ```
 
-A user can have one Candidate profile or one Recruiter profile.
+A user account can be associated with candidate-specific or recruiter-specific profile information through the corresponding profile relations.
+
+The exact optionality and constraints are defined in the Prisma schema.
 
 ---
 
-# 7. Candidate
+## 7. Candidate
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 The `Candidate` entity connects a user account with professional profile information.
+
+Table:
 
 ```text
 candidates
@@ -205,29 +214,33 @@ createdAt
 updatedAt
 ```
 
-The relationship between `User` and `Candidate` is one-to-one:
+The documented relationship between `User` and `Candidate` is one-to-one:
 
 ```text
 User
- │
+ |
  └── Candidate
 ```
 
-`userId` is unique, ensuring that a user has at most one Candidate record.
+The `userId` field is unique, ensuring that a user can have at most one associated Candidate record.
 
-A Candidate is also related to:
+A candidate is also related to:
 
-* CandidateSkill
-* Match
-* Application.
+- `CandidateSkill`;
+- `Match`;
+- `Application`.
+
+Candidate ownership and access permissions are enforced by the backend application.
 
 ---
 
-# 8. Recruiter
+## 8. Recruiter
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 The `Recruiter` entity connects a user account with recruiter-specific information.
+
+Table:
 
 ```text
 recruiters
@@ -244,27 +257,29 @@ Relationships:
 
 ```text
 User
- │
+ |
  └── Recruiter
-       │
-       ├── Company
-       │
-       └── Jobs
+      |
+      ├── Company
+      |
+      └── Jobs
 ```
 
-`userId` is unique.
+The `userId` field is unique.
 
-A recruiter can be associated with a company through `companyId`.
+A recruiter can be associated with a company through `companyId`. This field is indexed for company-based queries.
 
-`companyId` is indexed for efficient company-based queries.
+The exact optionality of the company relationship is defined in the Prisma schema.
 
 ---
 
-# 9. Company
+## 9. Company
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 The `Company` entity represents an organization using the platform.
+
+Table:
 
 ```text
 companies
@@ -283,21 +298,23 @@ Relationships:
 
 ```text
 Company
- ├── Recruiters
- └── Jobs
+├── Recruiters
+└── Jobs
 ```
 
 The company `slug` is unique.
 
-A company can have multiple recruiters and multiple jobs.
+A company can be associated with multiple recruiters and multiple jobs, according to the documented domain model.
 
 ---
 
-# 10. Job
+## 10. Job
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
-The `Job` entity represents a vacancy published through the platform.
+The `Job` entity represents a vacancy managed through the platform.
+
+Table:
 
 ```text
 jobs
@@ -324,19 +341,18 @@ Relationships:
 
 ```text
 Company
- │
+ |
  └── Job
-      │
       ├── JobRequirement
       ├── Match
       └── Application
 
 Recruiter
- │
+ |
  └── Job
 ```
 
-A job belongs to one company and has one creating recruiter.
+A job belongs to a company and records the recruiter who created it.
 
 Employment types:
 
@@ -367,15 +383,17 @@ CLOSED
 ARCHIVED
 ```
 
-Indexes are defined for company, status, publication/expiry combinations, and creation date.
+The documented index strategy includes company, status, publication and expiry combinations, and creation date.
 
 ---
 
-# 11. Skill
+## 11. Skill
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
-Skills are a central part of the platform's candidate and job data model.
+The `Skill` entity provides a normalized skill catalog used by candidate profiles and job requirements.
+
+Table:
 
 ```text
 skills
@@ -393,10 +411,10 @@ The `slug` is unique.
 
 Skills are connected to:
 
-* CandidateSkill
-* JobRequirement.
+- `CandidateSkill`;
+- `JobRequirement`.
 
-Skill categories currently defined in Prisma are:
+The documented skill categories are:
 
 ```text
 FRONTEND
@@ -415,13 +433,17 @@ DESIGN
 OTHER
 ```
 
+The Prisma schema defines the authoritative category values.
+
 ---
 
-# 12. CandidateSkill
+## 12. CandidateSkill
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 `CandidateSkill` represents the relationship between a candidate and a skill.
+
+Table:
 
 ```text
 candidate_skills
@@ -442,7 +464,7 @@ Relationship:
 
 ```text
 Candidate
-    │
+    |
     └── CandidateSkill ── Skill
 ```
 
@@ -452,17 +474,21 @@ The combination of:
 candidateId + skillId
 ```
 
-is unique, preventing duplicate candidate-skill relationships.
+is unique.
 
-Indexes exist for both candidate and skill.
+This prevents duplicate candidate-skill relationships.
+
+Indexes are defined for candidate and skill references.
+
+The existence of this database entity does not, by itself, establish that a dedicated public API endpoint exists for managing candidate skills.
 
 ---
 
-# 13. Candidate Skill Source
+## 13. Candidate Skill Source
 
-Candidate skills contain a `source` field.
+Candidate skills contain a `source` field that records the origin of the skill information.
 
-Current values are:
+The documented values are:
 
 ```text
 SELF_REPORTED
@@ -473,15 +499,18 @@ VERIFIED
 RECRUITER_CONFIRMED
 ```
 
-This allows the database to retain the origin of candidate skill information.
+This allows the platform to distinguish between self-reported, extracted, assessed, and otherwise confirmed skill information.
 
-The `confidence` field can store an additional confidence value where applicable.
+Additional fields include:
 
-The `verified` field indicates whether the skill has been verified.
+- `confidence` — an optional confidence value where applicable;
+- `verified` — indicates whether the skill has been verified.
+
+The Prisma schema defines the exact field types, defaults, and allowed values.
 
 ---
 
-# 14. Candidate Skill Proficiency
+## 14. Candidate Skill Proficiency
 
 `CandidateSkill` contains:
 
@@ -489,19 +518,23 @@ The `verified` field indicates whether the skill has been verified.
 proficiencyLevel
 ```
 
-The database stores this value as an integer.
+The documented Prisma model stores this value as an integer.
 
-The current Prisma schema does not define a separate proficiency enum.
+The current documented schema does not define a separate proficiency enum.
 
-Therefore, the database architecture treats the field as an integer rather than introducing additional database-level proficiency categories.
+Consequently, this architecture describes proficiency as an integer rather than introducing additional database-level proficiency categories.
+
+Any range validation or interpretation of the integer belongs to the application layer unless explicitly enforced by the database.
 
 ---
 
-# 15. JobRequirement
+## 15. JobRequirement
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 `JobRequirement` connects a job with a required or preferred skill.
+
+Table:
 
 ```text
 job_requirements
@@ -520,7 +553,7 @@ Relationship:
 
 ```text
 Job
- │
+ |
  └── JobRequirement ── Skill
 ```
 
@@ -534,11 +567,11 @@ is unique.
 
 This prevents the same skill from being added multiple times to one job.
 
-Indexes exist for both job and skill.
+Indexes are defined for job and skill references.
 
 ---
 
-# 16. Required and Preferred Skills
+## 16. Required and Preferred Skills
 
 A job requirement contains:
 
@@ -546,9 +579,9 @@ A job requirement contains:
 required
 ```
 
-This Boolean value distinguishes required skills from non-required skills.
+This Boolean field distinguishes required skills from skills that are not marked as required.
 
-Example:
+For example:
 
 ```text
 required = true
@@ -562,15 +595,22 @@ required = false
 
 means the skill is not marked as required.
 
-`minimumLevel` and `weight` provide additional information for job-skill matching.
+Additional fields include:
+
+- `minimumLevel` — the minimum proficiency level specified for the requirement;
+- `weight` — a value that can contribute to matching calculations.
+
+The database stores these values. Their interpretation and use in matching belong to backend application logic.
 
 ---
 
-# 17. Match
+## 17. Match
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
 The `Match` entity stores calculated compatibility information between a candidate and a job.
+
+Table:
 
 ```text
 matches
@@ -595,7 +635,7 @@ Relationship:
 
 ```text
 Candidate
-    │
+    |
     └── Match ── Job
 ```
 
@@ -609,13 +649,15 @@ is unique.
 
 This ensures one stored Match record per candidate-job pair.
 
-Indexes exist for candidate, job, and overall score.
+Indexes are defined for candidate, job, and overall score.
+
+The existence of the `Match` model does not imply that matching is exposed through a public API endpoint. API availability is documented separately in `architecture/api.md`.
 
 ---
 
-# 18. Match Scores
+## 18. Match Scores and Explanation
 
-The database stores an overall score and optional component scores:
+The database stores an overall score and component scores:
 
 ```text
 overallScore
@@ -627,31 +669,29 @@ availabilityScore
 preferenceScore
 ```
 
-The calculation itself belongs to backend application logic.
+The matching calculation belongs to backend application logic.
 
 The database stores the resulting match data rather than implementing the matching algorithm inside PostgreSQL.
 
----
+The `Match` entity also contains:
 
-# 19. Match Explanation
-
-The `Match` entity contains:
-
-```text
+```prisma
 explanation Json?
 ```
 
-This allows structured match explanation data to be stored alongside the calculated scores.
+This optional JSON field allows structured match explanation data to be stored alongside the calculated scores.
 
-The JSON field provides flexibility for the match explanation structure without introducing additional relational tables.
+The exact explanation structure is defined by the backend implementation.
 
 ---
 
-# 20. Application
+## 19. Application
 
-**Status:** Implemented
+**Status:** Implemented in the documented Prisma model
 
-The `Application` entity represents a candidate application for a job.
+The `Application` entity represents a candidate's application for a job.
+
+Table:
 
 ```text
 applications
@@ -669,7 +709,7 @@ Relationships:
 
 ```text
 Candidate
-    │
+    |
     └── Application ── Job
 ```
 
@@ -683,7 +723,7 @@ is unique.
 
 This prevents a candidate from creating duplicate applications for the same job.
 
-Indexes exist for:
+Indexes are defined for:
 
 ```text
 candidateId
@@ -693,9 +733,9 @@ status
 
 ---
 
-# 21. Application Status
+## 20. Application Status
 
-The current application statuses are:
+The documented application statuses are:
 
 ```text
 PENDING
@@ -707,48 +747,41 @@ WITHDRAWN
 
 The status represents the current state of a candidate's application.
 
+Allowed status transitions and the authorization to perform them are responsibilities of the backend application.
+
 ---
 
-# 22. Entity Relationships
+## 21. Entity Relationships
 
-The main database relationships are:
+The main domain relationships are:
 
 ```text
 User
- │
- ├────────────── Candidate
- │                  │
- │                  ├── CandidateSkill ── Skill
- │                  │
- │                  ├── Match ────────── Job
- │                  │
- │                  └── Application ──── Job
- │
- └────────────── Recruiter
-                    │
-                    ├── Company
-                    │
-                    └── Job
+ |
+ ├── Candidate
+ |     ├── CandidateSkill ── Skill
+ |     ├── Match ─────────── Job
+ |     └── Application ───── Job
+ |
+ └── Recruiter
+       |
+       └── Company
+             |
+             └── Job
+                   ├── JobRequirement ── Skill
+                   ├── Match ─────────── Candidate
+                   └── Application ───── Candidate
 ```
 
-Job relationships:
+These relationships are represented through Prisma relations and database foreign keys.
 
-```text
-Company
-   │
-   └── Job
-        ├── JobRequirement ── Skill
-        ├── Match ─────────── Candidate
-        └── Application ───── Candidate
-```
-
-These relationships are represented through Prisma relations and foreign keys.
+The diagram is a conceptual overview. The Prisma schema defines the exact cardinalities, optional relations, and referential actions.
 
 ---
 
-# 23. Unique Constraints
+## 22. Unique Constraints
 
-Current unique constraints include:
+The documented unique constraints include:
 
 ```text
 User.email
@@ -768,13 +801,15 @@ Match(candidateId, jobId)
 Application(candidateId, jobId)
 ```
 
-These constraints protect the integrity of identity and domain relationships.
+These constraints protect the integrity of identity fields and domain relationships.
+
+The actual constraint definitions and names are determined by the Prisma schema and generated migrations.
 
 ---
 
-# 24. Index Strategy
+## 23. Index Strategy
 
-The current Prisma schema defines indexes where they support common relationship and filtering operations.
+The documented Prisma model defines indexes to support common relationship and filtering operations.
 
 Examples include:
 
@@ -804,9 +839,13 @@ Application.status
 
 Indexes should remain aligned with actual application query patterns.
 
+Additional indexes should be introduced when query performance measurements and access patterns justify them.
+
+The Prisma schema and database migrations remain authoritative for the implemented indexes.
+
 ---
 
-# 25. Referential Integrity
+## 24. Referential Integrity
 
 Relationships use Prisma foreign-key relations.
 
@@ -854,13 +893,15 @@ applications.candidateId
 candidates.id
 ```
 
-The Prisma schema is authoritative for relationship definitions and deletion behavior.
+Foreign-key constraints help prevent invalid references.
+
+The Prisma schema defines relationship behavior, including deletion and update actions. Documentation must not assume cascade deletion or other referential actions without checking the actual schema.
 
 ---
 
-# 26. Decimal Data
+## 25. Decimal Data
 
-Financial and scoring values use Prisma `Decimal` fields where appropriate.
+The documented database model uses Prisma `Decimal` fields for financial, experience, weighting, and scoring values where appropriate.
 
 Examples include:
 
@@ -885,25 +926,29 @@ Match.availabilityScore
 Match.preferenceScore
 ```
 
-This avoids representing these values as application-level floating-point fields in the Prisma model.
+Decimal fields avoid relying on binary floating-point representations for values that require decimal precision.
+
+The exact precision, scale, optionality, and database types are defined by the Prisma schema.
 
 ---
 
-# 27. JSON Data
+## 26. JSON Data
 
-The database currently uses JSON for:
+The documented database model uses JSON for:
 
 ```text
 Match.explanation
 ```
 
-This is used for structured match explanation data.
+This field stores structured match explanation data.
 
-Other domain information remains represented through relational columns and entities.
+Other core domain information remains represented through relational columns and entities.
+
+The structure and validation of JSON content are responsibilities of the backend application unless additional database constraints are explicitly defined.
 
 ---
 
-# 28. Database and Matching Separation
+## 27. Database and Matching Separation
 
 The database stores the information required by matching:
 
@@ -917,7 +962,7 @@ Job
 JobRequirement
 ```
 
-The resulting match is stored as:
+The resulting match information is stored in:
 
 ```text
 Match
@@ -927,57 +972,69 @@ Conceptually:
 
 ```text
 PostgreSQL
-    │
+    |
     ├── Candidate + Skills
-    │
+    |
     └── Job + Requirements
-             │
+             |
              ▼
        Matching Logic
-             │
+             |
              ▼
            Match
 ```
 
 Matching calculations belong to backend application logic.
 
+PostgreSQL stores the source data and resulting match records; it does not define the matching algorithm.
+
 ---
 
-# 29. Data Ownership
+## 28. Data Ownership and Authorization
 
-The database model separates ownership by domain.
+The database model separates information by domain.
 
 **Candidate**
 
-Owns:
+Associated data includes:
 
-* candidate profile;
-* candidate skills;
-* candidate matches;
-* candidate applications.
+- candidate profile;
+- candidate skills;
+- candidate matches;
+- candidate applications.
 
 **Recruiter**
 
-Owns recruiter account information and recruiter-created jobs.
+Associated data includes:
+
+- recruiter account information;
+- company association;
+- recruiter-created jobs.
 
 **Company**
 
-Owns company information and its associated jobs and recruiters.
+Associated data includes:
+
+- company information;
+- associated recruiters;
+- company jobs.
 
 **Platform**
 
-Owns:
+Platform-level data includes:
 
-* skill catalog;
-* job requirements;
-* matching data;
-* application state.
+- skill catalog;
+- job requirements;
+- matching records;
+- application state.
 
-The exact authorization rules are enforced by the backend application.
+These associations describe the domain model, not a complete authorization policy.
+
+The backend application is responsible for enforcing authentication, role permissions, resource ownership, and access restrictions.
 
 ---
 
-# 30. Database Transactions
+## 29. Database Transactions
 
 Operations affecting multiple related records should use Prisma transactions when atomicity is required.
 
@@ -985,19 +1042,21 @@ For example, creating a job together with multiple job requirements can be handl
 
 ```text
 Create Job
-   ↓
+    ↓
 Create JobRequirement records
-   ↓
+    ↓
 Commit
 ```
 
 If an operation fails, the transaction can roll back the related database changes.
 
+Transaction boundaries should be defined according to the consistency requirements of each backend operation.
+
 ---
 
-# 31. Migration Strategy
+## 30. Migration Strategy
 
-Database schema changes should use Prisma migrations.
+Database schema changes should use Prisma Migrate.
 
 Expected workflow:
 
@@ -1006,36 +1065,44 @@ Update schema.prisma
         ↓
 Create Prisma migration
         ↓
+Review generated SQL
+        ↓
 Run tests
         ↓
 Commit schema + migration
         ↓
-Deploy
+Deploy migration
 ```
 
-Migration files should remain version-controlled with the backend repository.
+Migration files should remain version-controlled in the backend repository.
+
+Production database changes should be applied through the project's deployment and migration process rather than through undocumented manual schema changes.
 
 ---
 
-# 32. Database Development
+## 31. Database Development
 
 The backend uses PostgreSQL through Prisma.
 
-The database connection is configured through the backend environment configuration.
+The database connection is configured through backend environment configuration.
 
 The Prisma schema defines:
 
-* models;
-* relations;
-* enums;
-* indexes;
-* unique constraints;
-* default values;
-* database field types.
+- models;
+- relations;
+- enums;
+- indexes;
+- unique constraints;
+- default values;
+- database field types.
+
+The backend environment example documents the database connection configuration.
+
+Database credentials and connection strings must remain outside frontend configuration.
 
 ---
 
-# 33. Database Security
+## 32. Database Security
 
 Database credentials must remain backend-only.
 
@@ -1045,113 +1112,122 @@ The frontend communicates with the backend API rather than connecting directly t
 
 The backend is responsible for:
 
-* authentication;
-* authorization;
-* validation;
-* database access;
-* protection of user and recruitment data.
+- authentication;
+- authorization;
+- input validation;
+- database access;
+- protection of user and recruitment data.
+
+Database access should follow the principle of least privilege.
+
+Production credentials should be managed through the deployment environment or an appropriate secrets-management solution.
 
 ---
 
-# 34. Personal Data
+## 33. Personal Data
 
 The database contains personal and professional information, including:
 
-* email addresses;
-* candidate profile information;
-* salary preferences;
-* availability;
-* professional skills;
-* recruiter and company information;
-* application data.
+- email addresses;
+- candidate profile information;
+- salary preferences;
+- availability information;
+- professional skills;
+- recruiter and company information;
+- job application data.
 
 Access to this information must be controlled by backend authorization.
 
+Data retention, deletion, and export requirements should be implemented and documented in accordance with the platform's applicable privacy and legal requirements.
+
 ---
 
-# 35. Current Database Scope
+## 34. Current Database Scope
 
-The current Prisma schema contains these implemented domain areas:
+The documented Prisma model covers the following domain areas:
 
-| Domain           | Entity         |
-| ---------------- | -------------- |
-| Authentication   | User           |
-| Candidate        | Candidate      |
-| Recruiter        | Recruiter      |
-| Company          | Company        |
-| Jobs             | Job            |
-| Skills           | Skill          |
+| Domain | Entity |
+|---|---|
+| Authentication | User |
+| Candidate | Candidate |
+| Recruiter | Recruiter |
+| Company | Company |
+| Jobs | Job |
+| Skills | Skill |
 | Candidate skills | CandidateSkill |
 | Job requirements | JobRequirement |
-| Matching         | Match          |
-| Applications     | Application    |
+| Matching | Match |
+| Applications | Application |
 
-The database therefore represents the core candidate, recruiter, job, skill, matching, and application domains.
+The database therefore represents the core candidate, recruiter, company, job, skill, matching, and application domains.
 
----
-
-# 36. Current Entity Status
-
-| Entity         | Status        |
-| -------------- | ------------- |
-| User           | ✅ Implemented |
-| Candidate      | ✅ Implemented |
-| Recruiter      | ✅ Implemented |
-| Company        | ✅ Implemented |
-| Job            | ✅ Implemented |
-| Skill          | ✅ Implemented |
-| CandidateSkill | ✅ Implemented |
-| JobRequirement | ✅ Implemented |
-| Match          | ✅ Implemented |
-| Application    | ✅ Implemented |
-
-These statuses are based specifically on the current Prisma schema.
+A database entity does not automatically imply a corresponding public API endpoint or user-facing feature.
 
 ---
 
-# 37. Current Entity Relationship Diagram
+## 35. Current Entity Status
+
+The documented entity status is:
+
+| Entity | Status |
+|---|---|
+| User | Implemented |
+| Candidate | Implemented |
+| Recruiter | Implemented |
+| Company | Implemented |
+| Job | Implemented |
+| Skill | Implemented |
+| CandidateSkill | Implemented |
+| JobRequirement | Implemented |
+| Match | Implemented |
+| Application | Implemented |
+
+These statuses refer specifically to the documented Prisma data model.
+
+They should be reviewed against `prisma/schema.prisma` whenever the schema changes.
+
+---
+
+## 36. Current Entity Relationship Diagram
+
+The following diagram provides a conceptual overview of the domain model:
 
 ```text
                          ┌──────────────┐
-                         │    users     │
+                         │     users    │
                          └──────┬───────┘
                                 │
-                    ┌───────────┴───────────┐
-                    │                       │
-                    ▼                       ▼
-             ┌──────────────┐       ┌──────────────┐
-             │  candidates  │       │  recruiters  │
-             └──────┬───────┘       └──────┬───────┘
-                    │                       │
-                    │                       ▼
-                    │                ┌──────────────┐
-                    │                │  companies   │
-                    │                └──────┬───────┘
-                    │                       │
-                    │                       ▼
-                    │                ┌──────────────┐
-                    │                │     jobs     │
-                    │                └──────┬───────┘
-                    │                       │
-             ┌──────┴───────┐        ┌─────┴────────────┐
-             │              │        │                  │
-             ▼              ▼        ▼                  ▼
-     ┌──────────────┐ ┌──────────┐ ┌────────────────┐ ┌──────────────┐
-     │candidate_    │ │ matches  │ │job_requirements│ │ applications │
-     │skills        │ └────┬─────┘ └───────┬────────┘ └──────┬───────┘
-     └──────┬───────┘      │               │                 │
-            │              │               │                 │
-            ▼              ▼               ▼                 ▼
-       ┌──────────┐     candidates       skills           candidates
-       │  skills  │
-       └──────────┘
+                  ┌─────────────┴─────────────┐
+                  │                           │
+                  ▼                           ▼
+           ┌──────────────┐            ┌──────────────┐
+           │  candidates  │            │  recruiters  │
+           └──────┬───────┘            └──────┬───────┘
+                  │                           │
+          ┌───────┼────────┐                  ▼
+          │       │        │           ┌──────────────┐
+          ▼       ▼        ▼           │   companies  │
+   ┌──────────┐ ┌────────┐ ┌──────────────┐ └──────┬───────┘
+   │candidate_│ │ matches│ │ applications │        │
+   │skills    │ └───┬────┘ └──────┬───────┘        ▼
+   └────┬─────┘     │             │          ┌──────────────┐
+        │           │             │          │     jobs     │
+        ▼           │             │          └──────┬───────┘
+   ┌──────────┐     │             │                 │
+   │  skills  │◄────┼─────────────┼──────────┐      │
+   └──────────┘     │             │          │      ▼
+                    │             │   ┌───────────────┐
+                    │             │   │job_requirements│
+                    │             │   └───────┬───────┘
+                    │             │           │
+                    └─────────────┴───────────┘
 ```
 
-This represents the current Prisma domain model.
+This diagram is conceptual and does not replace the Prisma schema as the authoritative relationship definition.
 
 ---
 
-# 38. Prisma as Source of Truth
+## 37. Prisma as Source of Truth
 
 The implementation hierarchy is:
 
@@ -1171,37 +1247,73 @@ The primary database source of truth is:
 it-talent-backend/prisma/schema.prisma
 ```
 
-Documentation must remain aligned with the implemented schema.
+Migration files provide the version-controlled history of database changes.
+
+Documentation must remain aligned with the implemented schema and migrations.
 
 When the schema changes, the corresponding database documentation should be reviewed and updated.
 
 ---
 
-# 39. Current Database Definition
+## 38. Relationship to API Architecture
 
-The IT Talent Platform database provides the relational foundation for:
+The database and API describe different layers of the platform.
 
-* user accounts and roles;
-* candidate profiles;
-* recruiter profiles;
-* companies;
-* job vacancies;
-* normalized skills;
-* candidate skills;
-* job skill requirements;
-* candidate-job matching;
-* job applications.
+The database defines:
 
-The model connects these domains through explicit relational entities, UUID identifiers, foreign keys, unique constraints, indexes, timestamps, enums, Decimal fields, and JSON match explanations.
+- persisted entities;
+- fields and data types;
+- relations and foreign keys;
+- indexes and unique constraints;
+- database-level defaults and enums.
+
+The API defines:
+
+- available HTTP endpoints;
+- request and response contracts;
+- authentication and authorization requirements;
+- validation behavior;
+- operations exposed to frontend clients.
+
+For example, the presence of `Match` or `CandidateSkill` in the Prisma schema does not establish that a public matching or candidate-skill endpoint exists.
+
+The API contract is documented separately in:
+
+```text
+architecture/api.md
+```
+
+Both documents should be reviewed when a change affects the database and the API.
 
 ---
 
-# 40. Document Status
+## 39. Current Database Definition
 
-**Document:** `database.md`
-**Version:** `0.2.0`
-**Status:** Current Database Architecture
-**Last updated:** 2026-09-10
+The IT Talent Platform database provides the relational foundation for:
+
+- user accounts and roles;
+- candidate profiles;
+- recruiter profiles;
+- companies;
+- job vacancies;
+- normalized skills;
+- candidate skills;
+- job skill requirements;
+- candidate-job matching records;
+- job applications.
+
+The model connects these domains through relational entities, UUID identifiers, foreign keys, unique constraints, indexes, timestamps, enums, Decimal fields, and JSON match explanations.
+
+The precise implementation is defined by the Prisma schema and its migration history.
+
+---
+
+## 40. Document Status
+
+**Document:** `database.md`  
+**Version:** `0.3.0`  
+**Status:** Current Database Architecture  
+**Last updated:** 2026-11-09
 
 The Prisma schema remains the authoritative implementation source for the database model.
 
@@ -1209,4 +1321,6 @@ Any future database change should be reflected in:
 
 1. `prisma/schema.prisma`;
 2. the corresponding Prisma migration;
-3. `database.md` where the documented architecture changes.
+3. backend code affected by the schema change;
+4. `database.md`, where the documented architecture changes;
+5. `api.md`, where the exposed API contract changes.

@@ -1,17 +1,28 @@
 # IT Talent Platform — Security Architecture
 
-**Document:** `security.md`
-**Version:** 0.4.0
-**Status:** Accepted
-**Last updated:** 2026-09-10
+**Document:** `security.md`  
+**Version:** `0.5.0`  
+**Status:** Accepted  
+**Last updated:** 2026-11-09
+
+---
 
 ## 1. Purpose
 
 This document describes the security architecture of the IT Talent Platform.
 
-Security is enforced primarily by the backend and applies to authentication, authorization, validation, API access, database access, and protection of user and recruitment data.
+Security is enforced primarily by the backend and applies to authentication, authorization, validation, API access, database access, and the protection of user and recruitment data.
 
-The platform uses a React/Vite frontend, a NestJS backend, Prisma, and PostgreSQL.
+The platform uses:
+
+- React and Vite for the frontend;
+- NestJS for the backend;
+- Prisma ORM for database access;
+- PostgreSQL as the relational database.
+
+The NestJS backend is the authoritative security boundary between the frontend and persistent application data.
+
+This document distinguishes between implemented backend security mechanisms, architectural principles, and production security requirements.
 
 ---
 
@@ -19,15 +30,19 @@ The platform uses a React/Vite frontend, a NestJS backend, Prisma, and PostgreSQ
 
 The platform follows these principles:
 
-* Authentication is handled by the backend.
-* Authorization is enforced by the backend.
-* Client-side restrictions are not considered security controls.
-* Incoming API data is validated before processing.
-* Database access is restricted to the backend.
-* Passwords are stored as secure hashes.
-* Sensitive database fields are not exposed directly through API responses.
-* Secrets remain server-side.
-* Resource ownership is enforced by backend business logic.
+- Authentication is handled by the backend.
+- Authorization is enforced by the backend.
+- Client-side restrictions are not considered security controls.
+- Incoming API data is validated before processing.
+- Database access is restricted to the backend.
+- Passwords are stored as secure password hashes.
+- Sensitive database fields are not exposed directly through API responses.
+- Secrets remain server-side.
+- Resource ownership is enforced by backend business logic.
+- Access is granted according to the principle of least privilege.
+- Security-sensitive operations are protected against abuse.
+
+Security controls must be applied consistently across the application rather than relying on frontend behavior.
 
 ---
 
@@ -37,30 +52,32 @@ The security boundary is structured as follows:
 
 ```text
 User
- │
+ |
  ▼
 React + Vite Frontend
- │
- │ HTTP/HTTPS
+ |
+ | HTTP/HTTPS
  ▼
 NestJS Backend
- │
+ |
  ├── Authentication
  ├── Authorization
  ├── Validation
  ├── Business Logic
  └── API Access Control
- │
+ |
  ▼
 Prisma
- │
+ |
  ▼
 PostgreSQL
 ```
 
 The frontend does not communicate directly with PostgreSQL.
 
-The NestJS backend is the primary security boundary between the application interface and persistent data.
+The NestJS backend is responsible for authentication, authorization, request validation, business rules, and controlled database access.
+
+The database provides an additional layer of integrity through relational constraints and data types.
 
 ---
 
@@ -68,24 +85,26 @@ The NestJS backend is the primary security boundary between the application inte
 
 The frontend is responsible for:
 
-* user interface;
-* navigation;
-* forms;
-* client-side interaction;
-* application state;
-* API communication;
-* language selection;
-* displaying role-specific functionality.
+- user interface;
+- navigation;
+- forms;
+- client-side interaction;
+- application state;
+- API communication;
+- language selection;
+- displaying role-specific functionality.
 
 The frontend must not be trusted to determine:
 
-* user identity;
-* user role;
-* ownership;
-* permissions;
-* access to protected resources.
+- user identity;
+- user role;
+- resource ownership;
+- permissions;
+- access to protected resources.
 
-Client-side validation improves the user experience, while authoritative validation and authorization are performed by the backend.
+Client-side validation improves the user experience, while authoritative validation and authorization must be performed by the backend.
+
+Hiding a navigation item or restricting a frontend route does not replace backend access control.
 
 ---
 
@@ -93,16 +112,20 @@ Client-side validation improves the user experience, while authoritative validat
 
 The NestJS backend is responsible for:
 
-* authentication;
-* authorization;
-* request validation;
-* business rules;
-* database access;
-* user and role management;
-* protected resource access;
-* ownership rules.
+- authentication;
+- authorization;
+- request validation;
+- business rules;
+- database access;
+- user and role management;
+- protected resource access;
+- ownership enforcement;
+- controlled API responses;
+- security-sensitive configuration.
 
-Security-sensitive decisions are therefore made on the server.
+Security-sensitive decisions must be made on the server.
+
+Every protected operation must verify the authenticated user and the permissions required for the requested resource and action.
 
 ---
 
@@ -114,7 +137,7 @@ The backend exposes the API under:
 /api/v1
 ```
 
-The API uses a versioned base path so that API contracts can evolve without changing the security boundary of the existing version.
+The versioned base path allows API contracts to evolve while maintaining a defined API version.
 
 Example:
 
@@ -122,7 +145,11 @@ Example:
 GET /api/v1/health
 ```
 
-All protected API operations must pass through the backend authentication and authorization mechanisms.
+Protected API operations must pass through the backend authentication and authorization mechanisms.
+
+Public endpoints, such as health checks and permitted authentication operations, must be explicitly identified and should expose only the information necessary for their purpose.
+
+The API contract is documented separately in `architecture/api.md`.
 
 ---
 
@@ -130,12 +157,12 @@ All protected API operations must pass through the backend authentication and au
 
 Authentication is handled by the NestJS backend.
 
-The authentication architecture uses:
+The documented authentication stack includes:
 
-* JWT authentication;
-* Passport;
-* Passport JWT;
-* Argon2 password hashing.
+- JWT authentication;
+- Passport;
+- Passport JWT;
+- Argon2 password hashing.
 
 User passwords are stored as password hashes rather than plaintext passwords.
 
@@ -143,28 +170,32 @@ Conceptually:
 
 ```text
 Password
-   │
+   |
    ▼
 Argon2
-   │
+   |
    ▼
 passwordHash
-   │
+   |
    ▼
 Database
 ```
 
-Password hashes are internal security data and must not be returned through normal API responses.
+Password hashes are internal security data and must never be returned through normal API responses.
+
+Authentication tokens must be validated by the backend before protected operations are performed.
+
+Token expiration, signing configuration, and secret management must follow the backend authentication implementation and production configuration.
 
 ---
 
 ## 8. Authorization and Roles
 
-The platform has three user roles:
+The platform defines three user roles:
 
-* `CANDIDATE`
-* `RECRUITER`
-* `ADMIN`
+- `CANDIDATE`
+- `RECRUITER`
+- `ADMIN`
 
 The effective role is determined by the authenticated backend user context.
 
@@ -172,22 +203,28 @@ The frontend may use role information to display appropriate navigation and func
 
 ### Candidate
 
-Candidates can access resources belonging to their own account and candidate profile.
+Candidates may access resources belonging to their own account and candidate profile, subject to the permissions implemented by the backend.
 
 Candidate-specific security boundaries include:
 
-* own profile;
-* own skills;
-* own applications;
-* own candidate information.
+- own profile;
+- own candidate information;
+- own applications;
+- candidate-related skills and matching information where access is supported.
 
 ### Recruiter
 
-Recruiters can access recruiter functionality and resources associated with their recruiter/company context.
+Recruiters may access recruiter functionality and resources associated with their authorized recruiter and company context.
+
+Access to company information, jobs, and applications must be checked by the backend.
 
 ### Admin
 
-Administrators have access to administrative functionality such as user and skill management.
+Administrators may access administrative functionality, such as user and skill management, according to the implemented permission rules.
+
+Administrative privileges must not be granted through untrusted client input.
+
+Public registration must not allow a user to assign themselves the `ADMIN` role.
 
 ---
 
@@ -214,6 +251,10 @@ PATCH /api/v1/candidates/me
 
 should operate on the candidate associated with the authenticated account rather than relying on a client-provided user identifier.
 
+For resources identified by a URL parameter, the backend must verify that the authenticated user is authorized to access and modify the referenced resource.
+
+This protects against insecure direct object reference vulnerabilities and unauthorized cross-account access.
+
 ---
 
 ## 10. Input Validation
@@ -230,26 +271,32 @@ forbidNonWhitelisted: true
 
 This provides:
 
-* DTO-based validation;
-* transformation of incoming values;
-* removal/rejection of unexpected properties;
-* protection against accepting fields that are not part of an endpoint's DTO.
+- DTO-based validation;
+- transformation of incoming values;
+- rejection of unexpected properties;
+- protection against accepting fields that are not part of an endpoint's DTO.
 
 API endpoints use explicit DTOs for operations such as authentication, users, candidates, skills, companies, jobs, and job requirements.
 
 Validation takes place before business logic is executed.
 
+DTO validation does not replace authorization checks or domain-specific business validation. Both must be applied where required.
+
 ---
 
 ## 11. CORS
 
-The backend enables CORS for frontend API communication.
+The backend enables Cross-Origin Resource Sharing (CORS) for frontend API communication.
 
-The allowed origin is configurable through the environment configuration.
+Allowed origins are configurable through the backend environment configuration.
 
-Credentialed requests must use an explicitly trusted frontend origin.
+The `CORS_ORIGIN` environment variable defines trusted frontend origins.
 
-Production deployments should therefore configure the frontend origin explicitly rather than relying on permissive wildcard access.
+Credentialed requests must use explicitly trusted origins.
+
+Production deployments must configure the intended frontend origin explicitly. Wildcard origin access is not appropriate for the production configuration.
+
+CORS is a browser access-control mechanism. It does not replace authentication, authorization, or server-side request validation.
 
 ---
 
@@ -263,13 +310,13 @@ The architecture is:
 
 ```text
 React
-  │
+  |
   ▼
 NestJS
-  │
+  |
   ▼
 Prisma
-  │
+  |
   ▼
 PostgreSQL
 ```
@@ -278,11 +325,13 @@ Database credentials remain on the backend.
 
 They must not be:
 
-* exposed to the frontend;
-* included in client-side configuration;
-* returned by API responses;
-* written to application logs;
-* committed to source control.
+- exposed to the frontend;
+- included in client-side configuration;
+- returned by API responses;
+- written to application logs;
+- committed to source control.
+
+Database access must be restricted to the backend application and authorized operational processes.
 
 ---
 
@@ -290,11 +339,16 @@ They must not be:
 
 The database uses structured identifiers and relational constraints to maintain data integrity.
 
-Relationships between entities such as users, candidates, recruiters, companies, skills, jobs, and job requirements are managed through the database schema and Prisma.
+Relationships between entities such as users, candidates, recruiters, companies, skills, jobs, and job requirements are managed through the Prisma schema and database migrations.
 
-Many-to-many relationships use dedicated relation models where required.
+Dedicated relation models are used for domain relationships where required, such as:
 
-Database constraints provide an additional layer of protection against invalid or duplicate relationships.
+- `CandidateSkill`;
+- `JobRequirement`.
+
+Database constraints provide an additional layer of protection against invalid references and duplicate relationships.
+
+Database integrity does not replace application-level authorization. A valid database relationship does not automatically mean that a user is permitted to access the related record.
 
 ---
 
@@ -302,21 +356,23 @@ Database constraints provide an additional layer of protection against invalid o
 
 The platform processes personal and professional information, including:
 
-* email addresses;
-* candidate profiles;
-* professional skills;
-* salary information;
-* availability;
-* work preferences;
-* company information;
-* job information;
-* applications.
+- email addresses;
+- candidate profiles;
+- professional skills;
+- salary information;
+- availability;
+- work preferences;
+- company information;
+- job information;
+- applications.
 
 API responses must expose only information appropriate to the authenticated user and requested operation.
 
-Database entities should not automatically be treated as public API response objects.
+Database entities must not automatically be treated as public API response objects.
 
-Response DTOs should be used where sensitive or internal fields must be excluded.
+Response DTOs or explicit response mapping should be used to exclude sensitive and internal fields.
+
+Access to personal information must follow the backend authorization rules and the principle of least privilege.
 
 ---
 
@@ -324,30 +380,32 @@ Response DTOs should be used where sensitive or internal fields must be excluded
 
 Internal security fields must not be exposed through normal API responses.
 
-Examples include:
+An example is:
 
 ```text
 passwordHash
 ```
 
-and other internal authentication or authorization metadata.
+Other internal authentication and authorization metadata must also remain protected.
 
 The intended data flow is:
 
 ```text
 Database Entity
-      │
+      |
       ▼
 Business Logic
-      │
+      |
       ▼
 Response DTO
-      │
+      |
       ▼
 JSON Response
 ```
 
 This keeps the database model separate from the public API contract.
+
+Response mapping must be reviewed whenever database entities or API response structures change.
 
 ---
 
@@ -355,23 +413,27 @@ This keeps the database model separate from the public API contract.
 
 API errors should not expose internal implementation details.
 
-Production responses should not reveal:
+Production responses must not reveal:
 
-* password hashes;
-* database credentials;
-* JWT secrets;
-* stack traces;
-* internal file paths;
-* database queries;
-* other security-sensitive configuration.
+- password hashes;
+- database credentials;
+- JWT secrets;
+- stack traces;
+- internal file paths;
+- database queries;
+- sensitive environment configuration.
 
 Errors should use predictable HTTP responses and messages appropriate to the API contract.
+
+Detailed diagnostic information may be recorded in appropriately protected server-side logs, but must not be exposed to clients.
+
+Error logging must avoid recording passwords, authentication tokens, and other sensitive request data.
 
 ---
 
 ## 17. Secrets and Environment Configuration
 
-Security-sensitive configuration must remain outside the source code.
+Security-sensitive configuration must remain outside source code.
 
 Examples include:
 
@@ -385,7 +447,18 @@ Environment-specific values should be supplied through environment configuration
 
 Local environment files containing credentials must not be committed to the repository.
 
-An `.env.example` file may document required variable names without containing real credentials.
+An `.env.example` file may document required variable names and safe example values without containing real credentials.
+
+The backend environment configuration validates required settings.
+
+Production secrets must:
+
+- use sufficiently strong values;
+- be accessible only to authorized services and operators;
+- be rotated when exposure is suspected;
+- never be included in frontend build-time configuration.
+
+The JWT secret must meet the minimum length and security requirements defined by the backend configuration.
 
 ---
 
@@ -397,6 +470,8 @@ This protects authentication information and application data while it is transm
 
 Plain HTTP is appropriate only for controlled local development environments.
 
+Production deployments should also ensure that redirects, proxy configuration, and trusted transport settings do not unintentionally permit insecure communication.
+
 ---
 
 ## 19. Security Headers
@@ -405,13 +480,15 @@ Production infrastructure should provide appropriate HTTP security headers.
 
 Relevant protections include:
 
-* Content Security Policy;
-* `X-Content-Type-Options`;
-* `Referrer-Policy`;
-* frame protection;
-* Strict Transport Security.
+- Content Security Policy (CSP);
+- `X-Content-Type-Options`;
+- `Referrer-Policy`;
+- frame protection, such as `frame-ancestors` or `X-Frame-Options`;
+- Strict Transport Security (HSTS).
 
-The exact configuration belongs to the production deployment layer.
+The exact configuration belongs to the backend or production deployment layer.
+
+The presence of a security header must be verified in actual HTTP responses. Listing a header as an architectural requirement does not establish that it is already configured.
 
 ---
 
@@ -421,28 +498,52 @@ Authentication credentials must be handled securely by the application.
 
 The authentication mechanism must protect authenticated requests against common browser-based risks, including:
 
-* credential theft;
-* unauthorized token reuse;
-* XSS-related credential exposure;
-* CSRF where applicable;
-* session-related attacks.
+- credential theft;
+- unauthorized token reuse;
+- XSS-related credential exposure;
+- CSRF where applicable;
+- session-related attacks.
+
+The exact browser security controls depend on the implemented token transport and storage strategy.
+
+If authentication uses cookies, cookie attributes such as `HttpOnly`, `Secure`, and `SameSite` must be configured appropriately, and CSRF protection must be considered.
+
+If authentication uses bearer tokens in frontend-managed storage, the application must account for the risks of token exposure through cross-site scripting.
 
 Authentication decisions remain server-side regardless of how the frontend stores or sends authentication state.
+
+The actual token storage and transport implementation should be documented and verified separately.
 
 ---
 
 ## 21. Rate Limiting and Abuse Protection
 
-Authentication and other security-sensitive API operations should be protected against excessive or automated requests.
+The backend uses NestJS throttling for authentication-related operations.
 
-Particularly important areas include:
+The documented configuration includes separate rate limits for:
 
 ```text
 POST /api/v1/auth/login
 POST /api/v1/auth/register
 ```
 
-Rate limiting and abuse protection belong to the API security layer and should be configured according to the production deployment requirements.
+The environment configuration includes:
+
+```text
+AUTH_LOGIN_TTL_MS=60000
+AUTH_LOGIN_LIMIT=5
+
+AUTH_REGISTER_TTL_MS=60000
+AUTH_REGISTER_LIMIT=3
+```
+
+These values define the configured time windows and request limits for the corresponding authentication operations.
+
+Rate limiting helps reduce automated abuse, excessive authentication attempts, and registration spam.
+
+Additional protection may be appropriate for other sensitive operations, depending on actual traffic patterns and abuse risks.
+
+Production deployments should review rate-limit settings and account for reverse proxies or multiple backend instances where applicable.
 
 ---
 
@@ -452,14 +553,19 @@ The platform handles personal and professional recruitment information.
 
 Security controls support privacy principles such as:
 
-* controlled access;
-* data minimization;
-* appropriate data exposure;
-* secure storage;
-* account-level access control;
-* protection of personal information.
+- controlled access;
+- data minimization;
+- appropriate data exposure;
+- secure storage;
+- account-level access control;
+- protection of personal information;
+- appropriate data retention and deletion.
 
-Privacy and GDPR requirements apply to the handling of candidate and recruiter data and should remain aligned with the platform's data model and operational policies.
+Privacy and GDPR requirements apply to the handling of candidate and recruiter data.
+
+The platform's data model, operational procedures, and privacy policies should remain aligned with applicable legal requirements.
+
+Technical access controls alone do not establish full GDPR compliance.
 
 ---
 
@@ -469,15 +575,21 @@ Security-sensitive functionality should be covered by automated tests where appl
 
 Important test areas include:
 
-* authentication;
-* invalid credentials;
-* protected endpoints;
-* role-based authorization;
-* ownership checks;
-* DTO validation;
-* rejection of unexpected properties;
-* sensitive response fields;
-* database relationship integrity.
+- authentication;
+- invalid credentials;
+- protected endpoints;
+- role-based authorization;
+- ownership checks;
+- DTO validation;
+- rejection of unexpected properties;
+- sensitive response fields;
+- database relationship integrity;
+- authentication rate limiting;
+- unauthorized access to other users' resources.
+
+Tests should verify both successful access by authorized users and rejection of unauthorized requests.
+
+Security tests should be maintained as the API and domain model evolve.
 
 ---
 
@@ -491,11 +603,14 @@ Security controls are part of the application architecture rather than only a de
 
 Every protected feature should define:
 
-* who can access it;
-* which resources can be accessed;
-* which operations are permitted;
-* which input is accepted;
-* which information can be returned.
+- who can access it;
+- which resources can be accessed;
+- which operations are permitted;
+- which input is accepted;
+- which information can be returned;
+- how unauthorized access is rejected.
+
+Security-sensitive changes should be reviewed for their impact on authentication, authorization, data exposure, and ownership.
 
 ---
 
@@ -503,13 +618,22 @@ Every protected feature should define:
 
 This document is aligned with:
 
-* `architecture.md`
-* `database.md`
-* `api.md`
+- `architecture.md`;
+- `database.md`;
+- `api.md`.
 
-Security decisions should remain consistent with the actual backend, database, and API implementation.
+Each document describes a different architectural concern:
 
-When a security-sensitive architectural decision changes, the relevant architecture documentation should be updated.
+| Document | Responsibility |
+|---|---|
+| `architecture.md` | Overall system architecture and component responsibilities |
+| `database.md` | Persisted entities, relationships, constraints, and indexes |
+| `api.md` | HTTP endpoints, request and response contracts |
+| `security.md` | Authentication, authorization, validation, and data protection |
+
+Security decisions must remain consistent with the actual backend, database, and API implementation.
+
+When a security-sensitive architectural decision changes, the relevant documentation must be reviewed and updated.
 
 ---
 
@@ -520,3 +644,5 @@ When a security-sensitive architectural decision changes, the relevant architect
 The IT Talent Platform uses backend-enforced authentication, authorization, validation, database access control, and protected handling of application data as core security principles.
 
 The backend remains the authoritative security boundary for the platform.
+
+The accepted security architecture defines the controls and requirements that must be maintained as the platform evolves. Production security settings must be verified against the deployed configuration and actual application behavior.

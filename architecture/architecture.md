@@ -1,58 +1,65 @@
 # IT Talent Platform — System Architecture
 
-**Document:** `architecture.md`
-**Version:** `0.2.0`
-**Status:** Architecture Baseline
-**Last updated:** 2026-09-10
+**Document:** `architecture.md`  
+**Version:** `0.3.0`  
+**Status:** Architecture Baseline  
+**Last updated:** 2026-11-09
 
 ---
 
 # 1. Purpose
 
-This document describes the technical architecture of the current IT Talent Platform.
+This document describes the system architecture of the IT Talent Platform and establishes a technical overview of its frontend, backend, database, API, and application responsibilities.
 
-The platform consists of:
+The platform is built around the following technologies:
 
-* a React/Vite frontend;
-* a NestJS backend;
-* a PostgreSQL database;
-* Prisma as the database ORM;
-* a REST API;
-* role-based access;
-* a shared multilingual interface.
+- React and Vite frontend
+- TypeScript
+- NestJS backend
+- PostgreSQL database
+- Prisma ORM
+- REST API
+- JWT-based authentication
+- Role-based authorization
+- English and Dutch interface support
 
-The architecture supports the current Candidate, Recruiter, and Admin experiences.
+The architecture supports the platform's Candidate, Recruiter, and Admin experiences.
+
+This document describes the known architectural structure. Detailed implementation contracts and domain-specific information are maintained in the corresponding architecture and product documents.
 
 ---
 
 # 2. Architecture Overview
 
-The current platform follows a frontend/backend architecture.
+The platform follows a frontend/backend architecture with a relational database.
 
 ```text
 User
-  │
-  ▼
+ │
+ ▼
 React + Vite
 Frontend
-  │
-  │ REST API / HTTP
-  ▼
+ │
+ │ HTTP / REST API
+ ▼
 NestJS
 Backend
-  │
-  ▼
-Prisma
-  │
-  ▼
+ │
+ ▼
+Prisma ORM
+ │
+ ▼
 PostgreSQL
 ```
 
-The frontend is responsible for presentation and user interaction.
+The main responsibilities are separated as follows:
 
-The backend is responsible for business logic, authentication, authorization, validation, and database access.
+- **Frontend:** presentation, navigation, user interaction, and API communication.
+- **Backend:** authentication, authorization, validation, business logic, and data access.
+- **Database:** persistent storage of application data.
+- **Prisma:** database access and schema management within the backend.
 
-The frontend does not access PostgreSQL directly.
+The frontend does not access PostgreSQL directly. All application data access is handled through the backend API.
 
 ---
 
@@ -62,36 +69,51 @@ The frontend does not access PostgreSQL directly.
 
 The frontend uses:
 
-* React;
-* Vite;
-* TypeScript;
-* Oxlint.
+- React 19
+- React DOM
+- Vite 8
+- TypeScript
+- React Router
+- Oxlint
+- Prettier
+- Vitest and Testing Library
 
-The frontend contains the application pages, components, features, services, configuration, types, and internationalization.
+The application also uses:
+
+- TipTap for rich-text editing functionality
+- DOMPurify for HTML sanitization
+- An internationalization system for language-specific interface text
+
+The frontend contains the application pages, reusable components, product features, services, configuration, types, and internationalization functionality.
 
 ## 3.2 Backend
 
 The backend uses:
 
-* NestJS;
-* TypeScript;
-* Prisma;
-* PostgreSQL;
-* REST API.
+- NestJS
+- TypeScript
+- Prisma
+- PostgreSQL
+- REST API
+- JWT-based authentication
 
-The backend is structured as a modular application.
+The backend is structured as a modular NestJS application.
+
+It uses environment configuration, request validation, and rate limiting for selected authentication operations.
 
 ## 3.3 Database
 
 PostgreSQL is the primary application database.
 
-Prisma provides database access and schema management for the backend.
+Prisma provides database access and schema management for the NestJS backend.
+
+The database model and relationships are documented separately in `architecture/database.md`.
 
 ---
 
 # 4. Repository Architecture
 
-The project is divided into three repositories:
+The project is divided into three GitHub repositories:
 
 ```text
 GitHub
@@ -105,15 +127,15 @@ Each repository has a separate responsibility.
 
 ### `it-talent-frontend`
 
-Contains the React/Vite application.
+Contains the React/Vite application, including the user interface, frontend features, routing, API services, and internationalization.
 
 ### `it-talent-backend`
 
-Contains the NestJS API and backend business logic.
+Contains the NestJS API, application modules, backend business logic, authentication, authorization, and database integration.
 
 ### `it-talent-docs`
 
-Contains product, architecture, API, security, and decision documentation.
+Contains product documentation, architecture documentation, API and security documentation, and Architecture Decision Records.
 
 ---
 
@@ -121,7 +143,7 @@ Contains product, architecture, API, security, and decision documentation.
 
 The frontend is organized around reusable application components and product features.
 
-Current structure:
+The main source structure is:
 
 ```text
 src/
@@ -138,40 +160,59 @@ src/
 └── main.tsx
 ```
 
-## 5.1 App
+## 5.1 Application Entry Point
 
-The `app` area contains application-level functionality.
+The application starts through `main.tsx`.
 
-## 5.2 Components
+The current provider setup includes:
+
+```text
+I18nProvider
+     │
+     ▼
+AuthProvider
+     │
+     ▼
+RouterProvider
+```
+
+These providers establish the shared internationalization, authentication, and routing context for the application.
+
+## 5.2 App
+
+The `app` area contains application-level functionality and configuration.
+
+## 5.3 Components
 
 Reusable interface components are organized in the components area.
 
-## 5.3 Features
+## 5.4 Features
 
 Feature-specific functionality is grouped within the features area.
 
-Examples include functionality related to:
+Product areas include functionality related to authentication, candidates, recruiters, jobs, applications, and administration.
 
-* authentication;
-* candidates;
-* recruiters;
-* jobs;
-* applications;
-* administration.
-
-## 5.4 Pages
+## 5.5 Pages
 
 Pages represent the main application views.
 
-The application provides role-specific pages for candidates, recruiters, and administrators.
+The application provides role-specific experiences for candidates, recruiters, and administrators.
 
-## 5.5 Services
+## 5.6 Services
 
 Services provide communication between the frontend and backend API.
 
-## 5.6 Types
+The frontend uses a configurable API base URL rather than accessing the database directly.
 
-Shared frontend TypeScript types define the structures used by the application.
+## 5.7 Types
+
+Frontend TypeScript types define the data structures used by the application.
+
+## 5.8 Testing and Code Quality
+
+The frontend uses Vitest and Testing Library for testing.
+
+Oxlint and Prettier support code quality and consistent formatting.
 
 ---
 
@@ -179,21 +220,17 @@ Shared frontend TypeScript types define the structures used by the application.
 
 The frontend is responsible for:
 
-* displaying application interfaces;
-* navigation;
-* forms;
-* user interaction;
-* search;
-* filtering;
-* sorting;
-* pagination;
-* displaying job information;
-* displaying application information;
-* displaying dashboards;
-* language selection;
-* communicating with the backend API.
+- Displaying application interfaces
+- Navigation and routing
+- Forms and user interaction
+- Search and filtering interfaces
+- Sorting and pagination interfaces
+- Displaying candidate, recruiter, and job information
+- Displaying dashboards
+- Language selection
+- Communicating with the backend API
 
-Business-critical rules remain on the backend.
+Business-critical rules and authorization decisions remain the responsibility of the backend.
 
 ---
 
@@ -203,8 +240,8 @@ The frontend contains a shared internationalization system.
 
 Current languages are:
 
-* English;
-* Dutch.
+- English
+- Dutch
 
 English is the default language.
 
@@ -220,10 +257,10 @@ Language
     │
  ┌──┴──┐
  ▼     ▼
-EN     NL
+ EN    NL
 ```
 
-User-facing functionality should use the translation system rather than hard-coded interface text where applicable.
+User-facing functionality should use the translation system rather than hard-coded interface text wherever applicable.
 
 ---
 
@@ -231,18 +268,28 @@ User-facing functionality should use the translation system rather than hard-cod
 
 The backend is implemented with NestJS and follows a modular application structure.
 
-Current backend areas include:
+The application module currently registers the following functional modules:
 
 ```text
 src/
 │
+├── applications/
 ├── auth/
-├── users/
+├── candidates/
+├── companies/
+├── dashboard/
+├── database/
+├── health/
+├── jobs/
+├── recruiters/
+├── settings/
 ├── skills/
-└── common/
+└── users/
 ```
 
-The backend provides the API used by the frontend.
+The backend also includes shared functionality and infrastructure components.
+
+The modular structure separates related domain responsibilities while keeping the application within one NestJS backend.
 
 ---
 
@@ -250,18 +297,26 @@ The backend provides the API used by the frontend.
 
 The backend is responsible for:
 
-* authentication;
-* authorization;
-* user management;
-* candidate profile functionality;
-* skills;
-* validation;
-* database operations;
-* API responses;
-* business rules;
-* health checks.
+- Authentication
+- Authorization
+- User management
+- Candidate functionality
+- Recruiter functionality
+- Company functionality
+- Job functionality
+- Application functionality
+- Skills management
+- Dashboard-related functionality
+- Settings
+- Request validation
+- Database operations
+- API responses
+- Business rules
+- Health checks
 
-The backend is the authoritative layer for application business logic.
+The backend is the authoritative layer for application business logic and access control.
+
+The presence of a registered module does not necessarily mean that every planned feature within that domain is fully implemented.
 
 ---
 
@@ -269,27 +324,36 @@ The backend is the authoritative layer for application business logic.
 
 Authentication is handled by the backend.
 
-The current authentication flow is:
+The current authentication architecture uses JWT-based authentication.
+
+Conceptually, the authentication flow is:
 
 ```text
 User
-  │
-  ▼
+ │
+ ▼
 Register / Login
-  │
-  ▼
-NestJS Auth
-  │
-  ▼
+ │
+ ▼
+NestJS Authentication Module
+ │
+ ▼
+Credential Verification
+ │
+ ▼
 JWT Authentication
-  │
-  ▼
+ │
+ ▼
 Authenticated API Requests
 ```
 
 The backend uses password hashing for stored passwords.
 
-Authenticated requests are protected through backend authentication mechanisms.
+Authenticated API requests are handled through backend authentication mechanisms.
+
+Authentication configuration is managed through environment variables.
+
+The backend also applies rate limiting to selected login and registration operations.
 
 ---
 
@@ -297,7 +361,7 @@ Authenticated requests are protected through backend authentication mechanisms.
 
 The platform uses role-based authorization.
 
-Current roles are:
+The main application roles are:
 
 ```text
 CANDIDATE
@@ -319,7 +383,9 @@ User
  └── ADMIN
 ```
 
-Frontend navigation reflects the user's role, but frontend restrictions are not considered a security boundary.
+Frontend navigation and page access reflect the authenticated user's role.
+
+However, frontend restrictions are not considered a security boundary. The backend remains responsible for enforcing authorization on protected operations.
 
 ---
 
@@ -327,29 +393,31 @@ Frontend navigation reflects the user's role, but frontend restrictions are not 
 
 Users are represented by the backend user model.
 
-A user contains authentication and role information.
+A user contains authentication and role-related information.
 
-The user model supports the platform's main roles:
+The user architecture supports the platform's main roles:
 
-* Candidate;
-* Recruiter;
-* Admin.
+- Candidate
+- Recruiter
+- Admin
 
-User-related operations are exposed through protected backend functionality.
+User-related operations are exposed through backend API functionality.
+
+Detailed user and profile relationships are documented in `architecture/database.md`.
 
 ---
 
 # 13. Candidate Architecture
 
-Candidate functionality is connected to the authenticated user/profile flow.
+Candidate functionality is connected to the authenticated user and candidate profile flow.
 
-The candidate experience includes:
+The candidate experience is designed around:
 
-* professional profile;
-* skills;
-* job discovery;
-* matching information;
-* applications.
+- Professional profile information
+- Skills
+- Job discovery
+- Matching information
+- Applications
 
 Conceptually:
 
@@ -365,7 +433,9 @@ Candidate Profile
  └── Applications
 ```
 
-The candidate profile is used throughout the candidate experience.
+The candidate profile provides the foundation for candidate-facing functionality.
+
+The exact fields and relationships are defined by the database model and documented separately.
 
 ---
 
@@ -374,6 +444,8 @@ The candidate profile is used throughout the candidate experience.
 Skills are a central domain concept within IT Talent.
 
 The platform maintains structured skill information.
+
+Candidate skills connect candidates with skills:
 
 ```text
 Candidate
@@ -385,7 +457,7 @@ Candidate Skills
 Skill
 ```
 
-Jobs also use structured skills:
+Jobs can also be associated with structured skill requirements:
 
 ```text
 Job
@@ -394,26 +466,26 @@ Job
  └── Preferred Skills
 ```
 
-Skills are managed through the backend and administration functionality.
+Skills are managed through backend functionality and administration-related workflows.
 
 ---
 
 # 15. Job Architecture
 
-Jobs represent IT vacancies managed by recruiters.
+Jobs represent IT vacancies managed through the recruiter experience.
 
-A job contains structured information such as:
+The job domain is designed to support structured information such as:
 
-* title;
-* description;
-* company;
-* location;
-* work mode;
-* employment type;
-* salary;
-* required skills;
-* preferred skills;
-* status.
+- Title
+- Description
+- Company
+- Location
+- Work mode
+- Employment type
+- Salary
+- Required skills
+- Preferred skills
+- Status
 
 Conceptually:
 
@@ -428,13 +500,17 @@ Job
    └── Preferred Skills
 ```
 
+The actual fields, relationships, and supported operations are defined by the backend implementation.
+
 ---
 
 # 16. Company Architecture
 
 Jobs are associated with a company context.
 
-The company context connects recruiter activity with job information.
+The company domain connects recruiter activity with company and job information.
+
+Conceptually:
 
 ```text
 Recruiter
@@ -448,13 +524,15 @@ Jobs
 
 Company-related functionality is part of the recruiter experience.
 
+The database documentation defines the detailed relationships.
+
 ---
 
 # 17. Matching Architecture
 
 Matching connects candidate information with job information.
 
-The matching concept uses structured data from both sides:
+The matching concept can use structured data from both sides:
 
 ```text
 Candidate
@@ -465,23 +543,25 @@ Candidate
  ├── Salary
  ├── Availability
  └── Preferences
-        │
-        ▼
-     Matching
-        │
-        ▼
-       Job
+       │
+       ▼
+    Matching
+       │
+       ▼
+      Job
 ```
 
-Matching information can be presented to candidates and recruiters through the application.
+Matching information is part of the platform's product domain.
 
-The matching functionality is part of the product domain and is handled by the backend.
+The exact matching algorithm, scoring model, and implementation status should be documented separately when confirmed by the backend implementation.
 
 ---
 
 # 18. Application Architecture
 
 Applications connect candidates with jobs.
+
+Conceptually:
 
 ```text
 Candidate
@@ -497,23 +577,17 @@ Application
     └── Status
 ```
 
-Application status is represented within the application.
-
-Supported statuses include:
-
-* pending;
-* reviewing;
-* accepted;
-* rejected;
-* withdrawn.
-
 Application data is managed by the backend.
+
+The application domain supports status-based workflows. The exact supported status values and transition rules are defined by the current backend implementation and should be maintained in the API and database documentation.
 
 ---
 
 # 19. Dashboard Architecture
 
-The frontend provides role-specific dashboards.
+The frontend provides role-specific dashboard experiences.
+
+Conceptually:
 
 ```text
 Authenticated User
@@ -529,29 +603,17 @@ Dashboard Dashboard Dashboard
 
 ## Candidate Dashboard
 
-Provides information such as:
-
-* profile completion;
-* applications;
-* available jobs;
-* recommended jobs;
-* skills;
-* recent applications;
-* recent jobs.
+The candidate dashboard is designed to present candidate-related information, such as profile information, applications, and job discovery.
 
 ## Recruiter Dashboard
 
-Provides information such as:
-
-* company information;
-* jobs by status;
-* applications;
-* recent candidates;
-* recent jobs.
+The recruiter dashboard is designed to present recruiter-related information, such as company and job information and application activity.
 
 ## Admin Dashboard
 
-Provides access to administrative functionality.
+The admin dashboard provides access to administrative functionality.
+
+The exact dashboard content depends on the available backend functionality and frontend implementation.
 
 ---
 
@@ -559,7 +621,7 @@ Provides access to administrative functionality.
 
 Job discovery is provided through the frontend and backend API.
 
-The flow is:
+The conceptual flow is:
 
 ```text
 Candidate
@@ -583,7 +645,9 @@ Job Results
 Job Details
 ```
 
-The frontend sends search and filter parameters to the backend.
+The frontend sends supported search and filter parameters to the backend.
+
+The backend is responsible for processing the request and returning the corresponding results.
 
 ---
 
@@ -591,15 +655,7 @@ The frontend sends search and filter parameters to the backend.
 
 The frontend communicates with the backend through a REST API.
 
-The API uses versioning.
-
-Current API structure:
-
-```text
-/api/v1
-```
-
-Conceptually:
+The backend uses the `/api/v1` API prefix.
 
 ```text
 React + Vite
@@ -615,38 +671,35 @@ Prisma
 PostgreSQL
 ```
 
+The API is the communication boundary between frontend and backend.
+
 The frontend does not directly access database tables.
+
+Detailed endpoint information is maintained in `architecture/api.md`.
 
 ---
 
-# 22. Current API Areas
+# 22. Backend API Areas
 
-The current backend provides API functionality for areas including:
+The backend application currently registers modules for the following areas:
 
-### Authentication
+- Applications
+- Authentication
+- Candidates
+- Companies
+- Dashboard
+- Health
+- Jobs
+- Recruiters
+- Settings
+- Skills
+- Users
 
-* registration;
-* login.
+The database module provides the database integration layer.
 
-### Users
+The API exposes functionality through these modules as implementation progresses.
 
-* current authenticated user;
-* user-related functionality.
-
-### Candidate Profile
-
-* candidate profile foundation.
-
-### Skills
-
-* list skills;
-* search/filter skills;
-* retrieve skills;
-* create skills;
-* update skills;
-* delete skills.
-
-The API continues to evolve as platform functionality is implemented.
+The exact endpoints, HTTP methods, request schemas, response schemas, and authorization requirements are documented separately in `architecture/api.md`.
 
 ---
 
@@ -656,9 +709,7 @@ PostgreSQL is used as the relational database.
 
 Prisma is used by the NestJS backend to access the database.
 
-The database contains structured application data used by the platform.
-
-Conceptually:
+The database stores structured application data used by the platform.
 
 ```text
 NestJS
@@ -670,7 +721,7 @@ Prisma
 PostgreSQL
 ```
 
-The detailed database model is documented separately in:
+The detailed database model, entities, relationships, and constraints are documented in:
 
 `architecture/database.md`
 
@@ -682,36 +733,40 @@ A typical application request follows this flow:
 
 ```text
 User
-  │
-  ▼
+ │
+ ▼
 Frontend
-  │
-  ▼
+ │
+ ▼
 API Request
-  │
-  ▼
+ │
+ ▼
 NestJS Controller
-  │
-  ▼
+ │
+ ▼
 Backend Service
-  │
-  ▼
+ │
+ ▼
 Prisma
-  │
-  ▼
+ │
+ ▼
 PostgreSQL
-  │
-  ▼
+ │
+ ▼
 Backend Response
-  │
-  ▼
+ │
+ ▼
 Frontend
-  │
-  ▼
+ │
+ ▼
 User
 ```
 
-Business logic is executed on the backend.
+The backend validates and processes incoming requests.
+
+Business logic and database operations are executed on the backend.
+
+The frontend presents the resulting response to the user.
 
 ---
 
@@ -719,9 +774,17 @@ Business logic is executed on the backend.
 
 Input validation is handled by the backend.
 
-The frontend can provide immediate form validation for user experience, but backend validation remains authoritative.
+The backend uses request validation to ensure incoming data conforms to the expected API contracts.
 
-The backend validates incoming API data before processing it.
+The current validation configuration supports:
+
+- Whitelisting allowed properties
+- Transforming incoming values where applicable
+- Rejecting non-whitelisted properties
+
+The frontend may also provide immediate form validation to improve the user experience.
+
+Frontend validation does not replace backend validation.
 
 ---
 
@@ -731,6 +794,9 @@ Security is applied across the application layers.
 
 ```text
 Frontend
+   │
+   ▼
+API Boundary
    │
    ▼
 Authentication
@@ -750,15 +816,19 @@ Database
 
 Important security principles include:
 
-* secure password hashing;
-* authenticated access;
-* role-based authorization;
-* server-side validation;
-* protected API endpoints;
-* controlled data access;
-* secure handling of secrets.
+- Secure password hashing
+- JWT-based authentication
+- Role-based authorization
+- Server-side validation
+- Protected API endpoints
+- Controlled data access
+- Rate limiting for selected authentication operations
+- Explicit CORS configuration
+- Secure handling of environment variables and secrets
 
-Detailed security requirements are documented in:
+The backend uses trusted CORS origins configured through environment variables.
+
+Detailed security requirements and implementation information are documented in:
 
 `architecture/security.md`
 
@@ -768,18 +838,26 @@ Detailed security requirements are documented in:
 
 The backend uses a modular structure within one NestJS application.
 
-Current structure:
-
 ```text
 NestJS Application
 │
+├── Applications
 ├── Auth
-├── Users
+├── Candidates
+├── Companies
+├── Dashboard
+├── Database
+├── Health
+├── Jobs
+├── Recruiters
+├── Settings
 ├── Skills
-└── Common
+└── Users
 ```
 
-The structure keeps related functionality separated while allowing the application to operate as one backend.
+The module structure keeps related functionality separated while allowing the application to operate as one backend.
+
+Shared functionality is organized separately from the domain modules.
 
 ---
 
@@ -793,7 +871,8 @@ Frontend
 ├── UI
 ├── Navigation
 ├── Forms
-├── State
+├── Authentication Context
+├── Internationalization
 └── API Services
         │
         ▼
@@ -803,10 +882,14 @@ Backend
 ├── Authorization
 ├── Validation
 ├── Business Logic
+├── Domain Modules
 └── Database Access
+        │
+        ▼
+    PostgreSQL
 ```
 
-This separation allows the frontend and backend to evolve independently.
+This separation allows the frontend and backend to evolve independently while communicating through a defined API contract.
 
 ---
 
@@ -831,9 +914,11 @@ Deployment       Deployment
       PostgreSQL
 ```
 
-Vercel is suitable for the frontend deployment.
+Vercel is a suitable deployment option for the frontend.
 
-The exact production infrastructure is configured separately from the application architecture.
+The exact production hosting provider, backend infrastructure, database hosting, networking, and deployment pipeline are configured separately from the application architecture.
+
+No specific production infrastructure should be assumed unless it is documented in the deployment configuration or a corresponding Architecture Decision Record.
 
 ---
 
@@ -846,19 +931,24 @@ The frontend uses environment configuration for the backend API endpoint.
 Example:
 
 ```text
-VITE_API_URL=
+VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
 
-The backend uses environment configuration for database and authentication settings.
-
-Example:
+The backend uses environment configuration for application and infrastructure settings, including:
 
 ```text
+NODE_ENV=
+PORT=
 DATABASE_URL=
 JWT_SECRET=
+CORS_ORIGIN=
 ```
 
+Additional backend configuration includes authentication rate limits and CV upload settings.
+
 Actual secret values must remain outside the repository.
+
+Example environment files should contain placeholders or safe development defaults only.
 
 ---
 
@@ -866,19 +956,23 @@ Actual secret values must remain outside the repository.
 
 The project uses separate repositories for frontend, backend, and documentation.
 
-Development follows the repository structure:
+The local development architecture follows this structure:
 
 ```text
-Frontend
-   │
-   ▼
+Frontend Application
+        │
+        ▼
 Backend API
-   │
-   ▼
-Database
+        │
+        ▼
+PostgreSQL Database
 ```
 
-Changes to frontend functionality should use the backend API rather than direct database access.
+The frontend communicates with the backend API.
+
+The backend communicates with PostgreSQL through Prisma.
+
+Changes to frontend functionality must use the backend API rather than direct database access.
 
 ---
 
@@ -890,7 +984,7 @@ Frontend, backend, and database responsibilities remain clearly separated.
 
 ## 32.2 Backend-Owned Business Logic
 
-Business-critical rules are handled by the backend.
+Business-critical rules and authorization decisions are handled by the backend.
 
 ## 32.3 API-Based Communication
 
@@ -906,38 +1000,44 @@ Candidates, skills, jobs, companies, matches, and applications are represented a
 
 ## 32.6 Modular Design
 
-Related functionality is organized into logical modules.
+Related functionality is organized into logical NestJS modules.
 
 ## 32.7 Multilingual Interface
 
 User-facing functionality supports the platform's English and Dutch languages.
 
+## 32.8 Configuration Outside Source Code
+
+Environment-specific configuration and secrets are managed outside committed application source code.
+
 ---
 
-# 33. Current Architecture Structure
+# 33. Current Architecture Summary
 
-The current IT Talent architecture can be summarized as:
+The IT Talent Platform architecture can be summarized as follows:
 
 ```text
-                    IT Talent Platform
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-           Frontend                  Backend
-              │                         │
-        React + Vite                 NestJS
-        TypeScript                   TypeScript
-        Oxlint                         │
-              │                         │
-              └──────── REST API ──────┘
-                                        │
-                                      Prisma
-                                        │
-                                        ▼
-                                   PostgreSQL
+                 IT Talent Platform
+                         │
+            ┌────────────┴────────────┐
+            │                         │
+         Frontend                  Backend
+            │                         │
+       React + Vite                 NestJS
+       TypeScript                   TypeScript
+       React Router                 Domain Modules
+       Oxlint                       JWT Authentication
+       Vitest                       Validation
+            │                         │
+            └──────── REST API ───────┘
+                                      │
+                                    Prisma
+                                      │
+                                      ▼
+                                 PostgreSQL
 ```
 
-The main product domains are:
+The main product domains include:
 
 ```text
 Authentication
@@ -951,27 +1051,33 @@ Matching
 Applications
 Dashboards
 Administration
-Languages
+Internationalization
 ```
+
+These domains describe the platform's functional scope. Their presence in this overview does not imply that every planned capability is fully implemented.
 
 ---
 
 # 34. Architecture Status
 
-**Version:** 0.2.0
-**Status:** Architecture Baseline
-**Last updated:** 2026-09-10
+**Version:** 0.3.0  
+**Status:** Architecture Baseline  
+**Last updated:** 2026-11-09
 
-This document describes the architecture of the current IT Talent Platform.
+This document describes the known architecture of the IT Talent Platform.
 
 Detailed implementation information is maintained in:
 
-* `architecture/database.md`
-* `architecture/api.md`
-* `architecture/security.md`
+- `architecture/database.md`
+- `architecture/api.md`
+- `architecture/security.md`
 
 Product functionality is defined in:
 
-* `product/vision.md`
-* `product/requirements.md`
-* `product/roadmap.md`
+- `product/vision.md`
+- `product/requirements.md`
+- `product/roadmap.md`
+
+Architecture documentation must remain consistent with the current frontend and backend implementations.
+
+When implementation changes affect system structure, API behavior, security, or data relationships, the relevant documentation should be reviewed and updated accordingly.
